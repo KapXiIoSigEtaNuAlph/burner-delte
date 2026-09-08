@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scrabble Application</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			padding: 20px;
+			background-color: #f7f9fc;
+		}
+
+		/* Background completely obscured when modal is visible */
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: #f7f9fc;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+		}
+
+		.modal-container {
+			display: flex;
+			width: 90%;
+			max-width: 960px;
+			height: 420px;
+			border-radius: 12px;
+			background-color: #ffffff;
+			box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+			overflow: hidden;
+		}
+
+		.card {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			align-items: center;
+			border-right: 1px solid #eef2f6;
+			padding: 60px 30px;
+			text-align: center;
+		}
+
+		.card:last-child {
+			border-right: none;
+		}
+
+		.card-title {
+			font-size: 26px;
+			font-weight: 700;
+			color: #121927;
+			line-height: 1.3;
+		}
+
+		/* Uniform Gold Buttons */
+		.gold-btn {
+			width: 100%;
+			max-width: 200px;
+			padding: 14px 20px;
+			background-color: #ebd9ab;
+			color: #2c2416;
+			border: none;
+			border-radius: 6px;
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 1.2px;
+			text-transform: uppercase;
+			cursor: pointer;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+			transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+		}
+
+		.gold-btn:hover {
+			background-color: #E23F2B;
+			color: #ffffff;
+			transform: translateY(-2px);
+		}
+
+		/* Top-Right Info Icon */
+		.info-btn {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			background-color: #ebd9ab;
+			color: #2c2416;
+			border: none;
+			font-family: Georgia, serif;
+			font-size: 20px;
+			font-style: italic;
+			font-weight: bold;
+			cursor: pointer;
+			z-index: 2000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+			transition: background-color 0.2s ease, color 0.2s ease;
+		}
+
+		.info-btn:hover {
+			background-color: #E23F2B;
+			color: #ffffff;
+		}
+
+		/* Popups */
+		.popup-modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(0, 0, 0, 0.5);
+			justify-content: center;
+			align-items: center;
+			z-index: 3000;
+		}
+
+		.popup-content {
+			background: #ffffff;
+			padding: 30px;
+			border-radius: 8px;
+			max-width: 500px;
+			width: 80%;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- Persistent Rules Icon -->
+	<button class="info-btn" onclick="openRules()">i</button>
+
+	<!-- Main App Viewport -->
+	<div id="appContent"></div>
+
+	<!-- Home Screen Modal Overlay -->
+	<div id="modalOverlay" class="modal-overlay">
+		<div class="modal-container">
+			<div class="card">
+				<div class="card-title">Basic Scrabble Word Guide</div>
+				<button class="gold-btn" onclick="runWordsJS()">Learn Words</button>
+			</div>
+
+			<div class="card">
+				<div class="card-title">Scrabble System</div>
+				<button class="gold-btn" onclick="runGameJS()">Play Game</button>
+			</div>
+
+			<div class="card">
+				<div class="card-title">Bingo Learner</div>
+				<button class="gold-btn" onclick="runBingoJS()">Learn Bingo</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Popup for typing "words" during game -->
+	<div id="wordsModal" class="popup-modal">
+		<div class="popup-content">
+			<h1>The script element</h1>
+			<p id="demo">Hello World1!</p>
+		</div>
+	</div>
+
+	<!-- Game Rules Modal -->
+	<div id="rulesModal" class="popup-modal" onclick="closeRules()">
+		<div class="popup-content" onclick="event.stopPropagation()">
+			<h2>Rules of the Game</h2>
+			<p style="margin-top: 10px;">Here are the rules of the game</p>
+			<button class="gold-btn" style="margin-top: 20px;" onclick="closeRules()">Close</button>
+		</div>
+	</div>
+
+	<script>
+		let typedBuffer = "";
+    let currentPhase = "home";
+    let isWordsModalOpen = false;
+
+    // Parser to execute inline HTML strings inside #appContent
+    function executeJSContent(htmlDocString) {
+      const container = document.getElementById("appContent");
+      const parser = new DOMParser();
+      const parsedDoc = parser.parseFromString(htmlDocString, "text/html");
+      
+      container.innerHTML = parsedDoc.body.innerHTML;
+
+      // Re-trigger script elements inside the payload string
+      const scripts = parsedDoc.querySelectorAll("script");
+      scripts.forEach(s => {
+        const newScript = document.createElement("script");
+        newScript.textContent = s.textContent;
+        document.body.appendChild(newScript);
+      });
+    }
+
+    // --- JavaScript HTML String Modules ---
+
+    function runWordsJS() {
+      currentPhase = "words";
+      closeHomeModal();
+      const wordsHTML = '<!DOCTYPE html>\r\n<html>\r\n<body>\r\n\r\n<h1>The script element<\/h1>\r\n\r\n<p id=\"demo\"><\/p>\r\n\r\n<script>\r\ndocument.getElementById(\"demo\").innerHTML = \"Hello World1!\";\r\n<\/script> \r\n\r\n<\/body>\r\n<\/html>';
+      executeJSContent(wordsHTML);
+    }
+
+    function runGameJS() {
+      currentPhase = "game";
+      closeHomeModal();
+      const gameHTML = '<!DOCTYPE html>\r\n<html>\r\n<body>\r\n\r\n<h1>The script element<\/h1>\r\n\r\n<p id=\"demo\"><\/p>\r\n\r\n<script>\r\ndocument.getElementById(\"demo\").innerHTML = \"Hello JavaScript!\";\r\n<\/script> \r\n\r\n<\/body>\r\n<\/html>';
+      executeJSContent(gameHTML);
+    }
+
+function runBingoJS() {
+currentPhase = "bingo";
+closeHomeModal();
+const bingoHTML = `
+<style>
+	* {
+		box-sizing: border-box;
+	}
+
+	body {
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		background-color: #110b06;
+		color: #000000;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 16px;
+		margin: 0;
+		min-height: 100vh;
+		position: relative;
+	}
+
+	/* Landing Start Screen Overlay */
+	.start-screen-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: #f1f5f9;
+		z-index: 99999;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.start-screen-title {
+		font-size: 42px;
+		font-weight: 800;
+		color: #0f172a;
+		margin-bottom: 28px;
+		letter-spacing: -0.5px;
+		text-align: center;
+	}
+
+	.play-game-btn {
+		width: 100%;
+		background-color: #ebd9ab;
+		color: #ffffff;
+		font-size: 18px;
+		font-weight: 700;
+		padding: 18px 0;
+		border: none;
+		cursor: pointer;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+		transition: background-color 0.2s, opacity 0.2s;
+		border-radius: 0;
+	}
+
+	.play-game-btn:hover {
+		background-color: #E23F2B;
+		transform: none;
+	}
+
+	/* Top Right Tool Buttons */
+	.top-right-tools {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		z-index: 100;
+	}
+
+	.tool-btn {
+		width: 100px;
+		height: 48px;
+		border: none;
+		border-radius: 12px;
+		font-size: 13px;
+		font-weight: bold;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+		transition: transform 0.15s, opacity 0.15s;
+		line-height: 1.2;
+	}
+
+	.tool-btn:hover {
+		transform: scale(1.04);
+		opacity: 0.95;
+	}
+
+	.btn-dict {
+		background-color: #ff0000;
+		color: #ffffff;
+	}
+
+	.btn-img {
+		background-color: #009688;
+		color: #ffffff;
+	}
+
+	h1 {
+		margin: 0 0 16px 0;
+		font-size: 24px;
+		color: #ffffff;
+		letter-spacing: 0.5px;
+		text-align: center;
+	}
+
+	.learner-card {
+		background-color: #eef2f5;
+		border: 2px solid #cbd5e1;
+		border-radius: 36px;
+		padding: 24px;
+		display: flex;
+		flex-direction: row;
+		gap: 24px;
+		width: 100%;
+		max-width: 900px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+	}
+
+	.main-section {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 10px 0;
+	}
+
+	.rack-banner {
+		background: linear-gradient(90deg, #bbf7d0 0%, #a5f3fc 100%);
+		color: #000000;
+		border: 1px solid #86efac;
+		border-radius: 20px;
+		padding: 16px 20px;
+		width: 100%;
+		text-align: center;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		align-items: center;
+	}
+
+	.rack-title {
+		font-size: 17px;
+		font-weight: bold;
+		letter-spacing: 0.5px;
+	}
+
+	.rack-tiles {
+		display: flex;
+		gap: 8px;
+		justify-content: center;
+		min-height: 52px;
+	}
+
+	.tile {
+		width: 48px;
+		height: 48px;
+		background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
+		color: #000000;
+		border-radius: 6px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+		font-weight: bold;
+		box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+		border: 1px solid #d4a373;
+		position: relative;
+		user-select: none;
+		cursor: grab;
+		transition: transform 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+	}
+
+	.tile:active {
+		cursor: grabbing;
+	}
+
+	.tile.dragging {
+		opacity: 0.4;
+		transform: scale(1.05);
+	}
+
+	.tile.drag-over {
+		border: 2px dashed #009688;
+		transform: scale(1.08);
+	}
+
+	.tile .points {
+		position: absolute;
+		bottom: 2px;
+		right: 4px;
+		font-size: 10px;
+		color: #7f8c8d;
+		pointer-events: none;
+	}
+
+	.solutions-tracker {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.tracker-status {
+		font-size: 14px;
+		font-weight: bold;
+		color: #334155;
+	}
+
+	.solution-slots {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		justify-content: center;
+		max-width: 100%;
+	}
+
+	.slot-pill {
+		background-color: #ffffff;
+		border: 2px dashed #94a3b8;
+		border-radius: 8px;
+		padding: 4px 10px;
+		font-size: 13px;
+		font-weight: bold;
+		color: #94a3b8;
+		letter-spacing: 1px;
+		min-width: 90px;
+		text-align: center;
+		transition: all 0.2s ease;
+	}
+
+	.slot-pill.found {
+		border: 2px solid #2ecc71;
+		background-color: #dcffe4;
+		color: #15803d;
+	}
+
+	.slot-pill.revealed-pending {
+		border: 2px solid #f59e0b;
+		background-color: #fef3c7;
+		color: #b45309;
+		animation: pulse 1.5s infinite;
+	}
+
+	.slot-pill.skipped {
+		border: 2px solid #ef4444;
+		background-color: #fee2e2;
+		color: #b91c1c;
+	}
+
+	@keyframes pulse {
+
+		0%,
+		100% {
+			opacity: 1;
+		}
+
+		50% {
+			opacity: 0.7;
+		}
+	}
+
+	.input-section {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		max-width: 380px;
+	}
+
+	.guess-input {
+		width: 100%;
+		padding: 12px 16px;
+		font-size: 20px;
+		font-weight: bold;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		border: 2px solid #e2e8f0;
+		border-radius: 10px;
+		text-align: center;
+		outline: none;
+		background-color: #ffffff;
+		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+
+	.guess-input:focus {
+		border-color: #f97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+	}
+
+	.guess-input.error-shake {
+		animation: shake 0.3s ease-in-out;
+		border-color: #ef4444;
+	}
+
+	@keyframes shake {
+
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+
+		25% {
+			transform: translateX(-6px);
+		}
+
+		75% {
+			transform: translateX(6px);
+		}
+	}
+
+	.btn-group {
+		display: flex;
+		gap: 8px;
+		width: 100%;
+	}
+
+	button {
+		border: none;
+		color: white;
+		padding: 10px 14px;
+		font-size: 12px;
+		font-weight: bold;
+		border-radius: 6px;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: all 0.2s;
+	}
+
+	button:hover {
+		transform: translateY(-2px);
+	}
+
+	.submit-btn {
+		background-color: #2ecc71;
+		flex: 2;
+	}
+
+	.submit-btn:hover {
+		background-color: #27ae60;
+	}
+
+	.reveal-btn {
+		background-color: #f59e0b;
+		flex: 1.2;
+	}
+
+	.reveal-btn:hover {
+		background-color: #d97706;
+	}
+
+	.skip-btn {
+		background-color: #95a5a6;
+		flex: 1;
+	}
+
+	.skip-btn:hover {
+		background-color: #7f8c8d;
+	}
+
+	.upload-container {
+		margin-top: 4px;
+		font-size: 13px;
+		font-weight: bold;
+		color: #1e293b;
+		cursor: pointer;
+		text-decoration: underline;
+		transition: color 0.2s;
+	}
+
+	.upload-container:hover {
+		color: #f97316;
+	}
+
+	#csv-file-input {
+		display: none;
+	}
+
+	.sidebar {
+		background-color: #bdc3c7;
+		border-radius: 24px;
+		padding: 16px;
+		width: 260px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 12px;
+		flex-shrink: 0;
+	}
+
+	.sidebar-title {
+		font-size: 20px;
+		font-weight: bold;
+		color: #000000;
+		text-align: center;
+		padding-bottom: 6px;
+		border-bottom: 2px solid #a6b0b5;
+	}
+
+	.history-list {
+		flex: 1;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		max-height: 320px;
+		padding-right: 4px;
+	}
+
+	.history-card {
+		background-color: #ffffff;
+		border-radius: 8px;
+		padding: 8px 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		font-size: 12px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+		border-left: 5px solid #bdc3c7;
+	}
+
+	.history-card.correct {
+		border-left-color: #2ecc71;
+	}
+
+	.history-card.assisted {
+		border-left-color: #f59e0b;
+	}
+
+	.history-card.incorrect {
+		border-left-color: #e74c3c;
+	}
+
+	.history-word {
+		font-weight: bold;
+		font-size: 13px;
+		color: #1e293b;
+	}
+
+	.history-solutions {
+		font-size: 11px;
+		color: #64748b;
+	}
+
+	.save-btn {
+		background-color: #ffffff;
+		color: #000000;
+		border: 1px solid #a6b0b5;
+		width: 80%;
+		margin: 0 auto;
+		text-align: center;
+		border-radius: 6px;
+		padding: 8px;
+		font-weight: bold;
+		letter-spacing: 1px;
+	}
+
+	.save-btn:hover {
+		background-color: #f1f2f6;
+		color: #000000;
+	}
+
+	.modal-overlay {
+		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.75);
+		z-index: 9999;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.modal-box {
+		background: #ffffff;
+		width: 90%;
+		max-width: 980px;
+		height: 88vh;
+		border-radius: 16px;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+	}
+
+	.modal-header {
+		background: #1e293b;
+		color: #ffffff;
+		padding: 12px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.modal-header-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.modal-title {
+		font-weight: bold;
+		font-size: 16px;
+	}
+
+	.modal-search-bar {
+		display: flex;
+		gap: 6px;
+		flex: 1;
+		max-width: 280px;
+	}
+
+	.modal-search-bar input {
+		padding: 6px 10px;
+		border-radius: 6px;
+		border: 1px solid #475569;
+		width: 100%;
+		font-size: 13px;
+		outline: none;
+	}
+
+	.modal-search-bar button {
+		padding: 6px 10px;
+		background: #f97316;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+	}
+
+	.modal-actions {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.external-link-btn {
+		color: #38bdf8;
+		text-decoration: none;
+		font-size: 12px;
+		background: #334155;
+		padding: 6px 10px;
+		border-radius: 6px;
+		font-weight: bold;
+		transition: background 0.2s;
+	}
+
+	.external-link-btn:hover {
+		background: #475569;
+	}
+
+	.modal-close-btn {
+		background: transparent;
+		border: none;
+		color: #ffffff;
+		font-size: 26px;
+		cursor: pointer;
+		line-height: 1;
+		padding: 0 4px;
+	}
+
+	.modal-anagram-pills {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-wrap: wrap;
+		background: #0f172a;
+		padding: 6px 10px;
+		border-radius: 8px;
+	}
+
+	.modal-pill-label {
+		font-size: 11px;
+		color: #94a3b8;
+		font-weight: bold;
+		text-transform: uppercase;
+		margin-right: 4px;
+	}
+
+	.modal-word-pill {
+		background: #334155;
+		color: #e2e8f0;
+		border: 1px solid #475569;
+		border-radius: 6px;
+		padding: 3px 8px;
+		font-size: 12px;
+		font-weight: bold;
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.modal-word-pill:hover {
+		background: #475569;
+		color: #ffffff;
+	}
+
+	.modal-word-pill.active {
+		background: #009688;
+		color: #ffffff;
+		border-color: #5eead4;
+	}
+
+	.modal-body {
+		flex: 1;
+		width: 100%;
+		height: 100%;
+		background: #f8fafc;
+	}
+
+	.modal-body iframe {
+		width: 100%;
+		height: 100%;
+		border: none;
+	}
+
+	@media (max-width: 700px) {
+		.learner-card {
+			flex-direction: column;
+		}
+
+		.sidebar {
+			width: 100%;
+		}
+
+		.top-right-tools {
+			position: relative;
+			top: 0;
+			right: 0;
+			flex-direction: row;
+			margin-bottom: 12px;
+		}
+	}
+</style>
+
+<!-- Start Screen Overlay -->
+<div id="start-screen-overlay" class="start-screen-overlay">
+	<div class="start-screen-title">Bingo Learner</div>
+	<button class="play-game-btn" onclick="startGame()">Learn Bingo</button>
+</div>
+
+<div class="top-right-tools">
+	<button class="tool-btn btn-dict" onclick="openDictionary()">Dictionary</button>
+	<button class="tool-btn btn-img" onclick="openImageSearch()">Image<br>Search</button>
+</div>
+
+<h1>Scrabble Bingo Learner</h1>
+
+<div class="learner-card">
+	<div class="main-section">
+		<div class="rack-banner">
+			<div class="rack-title">THE RACK (7 tiles) Drag to Rearrange</div>
+			<div class="rack-tiles" id="rack-tiles"></div>
+		</div>
+
+		<div class="solutions-tracker">
+			<div class="tracker-status" id="tracker-status">Found 0 of 0 Bingos</div>
+			<div class="solution-slots" id="solution-slots"></div>
+		</div>
+
+		<div class="input-section">
+			<input type="text" id="guess-input" class="guess-input" placeholder="ENTER BINGO GUESS" autocomplete="off" spellcheck="false" maxlength="7">
+			<div class="btn-group">
+				<button class="submit-btn" onclick="submitGuess()">SUBMIT BINGO</button>
+				<button class="reveal-btn" onclick="revealAnswers()">REVEAL</button>
+				<button class="skip-btn" onclick="skipBingo()">SKIP</button>
+			</div>
+		</div>
+
+		<label class="upload-container" for="csv-file-input">
+				UPLOAD?
+				<input type="file" id="csv-file-input" accept=".csv" onchange="handleCSVUpload(event)">
+			</label>
+	</div>
+
+	<div class="sidebar">
+		<div class="sidebar-title">Bingo History</div>
+		<div class="history-list" id="history-list"></div>
+		<button class="save-btn" onclick="exportCSVProgress()">SAVE.</button>
+	</div>
+</div>
+
+<!-- Modal -->
+<div id="bingo-modal-overlay" class="modal-overlay">
+	<div class="modal-box">
+		<div class="modal-header">
+			<div class="modal-header-top">
+				<span class="modal-title" id="modal-title">Lookup Tool</span>
+				<div class="modal-search-bar">
+					<input type="text" id="modal-search-input" placeholder="Enter word...">
+					<button onclick="triggerModalSearch()">Search</button>
+				</div>
+				<div class="modal-actions">
+					<a id="modal-external-link" href="#" target="_blank" class="external-link-btn">↗ Open M-W</a>
+					<button class="modal-close-btn" onclick="closeModal()">&times;</button>
+				</div>
+			</div>
+			<div class="modal-anagram-pills" id="modal-anagram-pills">
+				<span class="modal-pill-label">Rack Anagrams:</span>
+			</div>
+		</div>
+		<div class="modal-body">
+			<iframe id="modal-iframe" src=""></iframe>
+		</div>
+	</div>
+</div>
+
+<script>
+	const letterValues = {
+			A:1, B:3, C:3, D:2, E:1, F:4, G:2, H:4, I:1, J:8, K:5, L:1, M:3, N:1, O:1, P:3, Q:10, R:1, S:1, T:1, U:1, V:4, W:4, X:8, Y:4, Z:10
+		};
+
+		const defaultBingoWords = [
+			"NOTAIRE", "OTARINE", "ETAERIO", "ANEROID", "AILERON", "ALERION", "ALIENOR", "ELATION", "TOENAIL", "ERASION", "ATONIES", "OARIEST", "OTARIES", "ROASTIE", "ARENITE", "RETINAE", "TRAINEE", "ORIGANE", "GOATIER", "ANTIRED", "DETRAIN", "TRAINED", "ENTRAIL", "LATRINE", "RATLINE", "RELIANT", "RETINAL", "TRENAIL", "ANESTRI", "ANTSIER", "NASTIER", "RATINES", "RESIANT", "RETAINS", "RETINAS", "RETSINA", "STAINER", "STARNIE", "STEARIN", "RUINATE", "TAURINE", "URANITE", "URINATE", "DARIOLE", "ADONISE", "ANODISE", "SODAINE", "RADIOES", "ROADIES", "SOREDIA", "IODATES", "TOADIES", "ANISOLE", "SEALION", "ISOLATE", "INERTIA", "TORNADE", "ATONERS", "SANTERO", "SENATOR", "TREASON", "OUTEARN", "RETINOL", "NORITES", "OESTRIN", "ORIENTS", "STONIER", "TERSION", "TRIONES", "ROUTINE", "ALIENER", "LINEATE", "ATELIER", "REALTIE", "ETESIAN", "AERIEST", "SERIATE", "AERADIO", "AEOLIAN", "OLEARIA", "ENATION", "GRANITE", "GRATINE", "INGRATE", "TANGIER", "TEARING", "TAENIAE", "ARENOSE", "ROSEATE", "ORDINEE", "ELOINER", "TROELIE", "EROTISE", "NIOBATE", "ACONITE", "ANOETIC", "EROTICA", "MORAINE", "ROMAINE", "AMNIOTE", "GODETIA", "AGONIES", "AGONISE", "GOATIES", "NEGATOR", "GENITOR", "DILATER", "REDTAIL", "TRAILED", "TRIALED", "RANDIES", "SANDIER", "SARDINE", "UNAIRED", "URANIDE", "DESTAIN", "DETAINS", "INSTEAD", "NIDATES", "SAINTED", "SATINED", "STAINED", "AUDIENT", "ARIDEST", "ASTERID", "ASTRIDE", "DIASTER", "DISRATE", "STAIDER", "STAIRED", "TARDIES", "TIRADES", "TRADIES", "ALINERS", "NAILERS", "RENAILS", "EASTLIN", "ELASTIN", "ENTAILS", "NAILSET", "SALIENT", "SALTINE", "SLAINTE", "STANIEL", "TENAILS", "ALUNITE", "REALIST", "RETAILS", "SALTIER", "SALTIRE", "SLATIER", "TAILERS", "URALITE", "AUNTIES", "SINUATE", "REGINAE", "DIATRON", "AROINTS", "RATIONS", "RAINOUT", "ARANEID", "AIRDATE", "RADIATE", "TIARAED", "ANTLIAE", "ENTASIA", "TAENIAS", "ARISTAE", "ASTERIA", "ATRESIA", "DENARII", "INEDITA", "AIRLINE", "SENARII", "ISATINE", "AIRIEST", "IRISATE", "DEASOIL", "ISOLEAD", "DOULEIA", "EATERIE", "LADRONE", "TALONED", "DELATOR", "LEOTARD", "RONDEAU", "ASTONED", "DONATES", "ONSTEAD", "DOATERS", "ROASTED", "TORSADE", "TROADES", "OUTDARE", "OUTREAD", "READOUT", "LOANERS", "ORLEANS", "RELOANS", "ALEURON", "ETALONS", "TOLANES", "OESTRAL", "OLESTRA", "ROTULAE", "TORULAE", "ARENOUS", "SOUTANE", "LENTOID", "DOILTER", "DINEROS", "DONSIER", "INDORSE", "ORDINES", "ROSINED", "SORDINE", "DOURINE", "NEUROID", "OUNDIER", "DITONES", "STONIED", "EDITORS", "ROISTED", "ROSITED", "SORTIED", "STEROID", "STORIED", "TRIODES", "ETOURDI", "IODURET", "OUTRIDE", "LIENORS", "NEROLIS", "SONLIER", "ENTOILS", "LIONETS", "ONLIEST", "ELUTION", "OUTLINE", "ESTRIOL", "LOITERS", "TOILERS", "OUTLIER", "URINOSE", "OURIEST", "STOURIE", "TOURIES", "TOUSIER", "ENTRAIN", "TRANNIE"
+		];
+
+		let bingoData = [];
+		let currentItem = null;
+		let currentShuffledRack = [];
+		let foundWordsCurrentRack = [];
+		let revealedWordsCurrentRack = [];
+		let isAssistedTurn = false;
+		let draggedIndex = null;
+		let activeModalType = 'dict';
+
+		function startGame() {
+			document.getElementById('start-screen-overlay').style.display = 'none';
+			document.getElementById('guess-input').focus();
+		}
+
+		function initLearner(wordArray) {
+			const groups = {};
+			wordArray.forEach(rawWord => {
+				const word = rawWord.trim().toUpperCase();
+				if (word.length === 7) {
+					const alpha = word.split('').sort().join('');
+					if (!groups[alpha]) groups[alpha] = [];
+					if (!groups[alpha].includes(word)) groups[alpha].push(word);
+				}
+			});
+
+			bingoData = Object.keys(groups).map(alpha => ({
+				alphagram: alpha,
+				validWords: groups[alpha],
+				weight: 10,
+				attempts: 0,
+				correct: 0,
+				streak: 0
+			}));
+
+			nextTurn();
+		}
+
+		function getWeightedRandomItem() {
+			const totalWeight = bingoData.reduce((sum, item) => sum + item.weight, 0);
+			let randomNum = Math.random() * totalWeight;
+
+			for (let item of bingoData) {
+				if (randomNum < item.weight) return item;
+				randomNum -= item.weight;
+			}
+			return bingoData[0];
+		}
+
+		function nextTurn() {
+			if (bingoData.length === 0) return;
+
+			currentItem = getWeightedRandomItem();
+			currentShuffledRack = currentItem.alphagram.split('');
+			foundWordsCurrentRack = [];
+			revealedWordsCurrentRack = [];
+			isAssistedTurn = false;
+
+			for (let i = currentShuffledRack.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[currentShuffledRack[i], currentShuffledRack[j]] = [currentShuffledRack[j], currentShuffledRack[i]];
+			}
+
+			renderRack();
+			renderSolutionTracker();
+			document.getElementById('guess-input').value = '';
+			if (document.getElementById('start-screen-overlay').style.display === 'none') {
+				document.getElementById('guess-input').focus();
+			}
+		}
+
+		function renderRack() {
+			const container = document.getElementById('rack-tiles');
+			container.innerHTML = '';
+
+			currentShuffledRack.forEach((letter, index) => {
+				const tile = document.createElement('div');
+				tile.className = 'tile';
+				tile.setAttribute('draggable', 'true');
+				tile.dataset.index = index;
+				tile.innerText = letter;
+
+				const pt = document.createElement('span');
+				pt.className = 'points';
+				pt.innerText = letterValues[letter] || 0;
+				tile.appendChild(pt);
+
+				tile.addEventListener('dragstart', (e) => {
+					draggedIndex = index;
+					tile.classList.add('dragging');
+					e.dataTransfer.effectAllowed = 'move';
+					e.dataTransfer.setData('text/plain', index);
+				});
+
+				tile.addEventListener('dragover', (e) => {
+					e.preventDefault();
+					e.dataTransfer.dropEffect = 'move';
+					tile.classList.add('drag-over');
+				});
+
+				tile.addEventListener('dragleave', () => {
+					tile.classList.remove('drag-over');
+				});
+
+				tile.addEventListener('drop', (e) => {
+					e.preventDefault();
+					tile.classList.remove('drag-over');
+					const targetIndex = parseInt(tile.dataset.index, 10);
+
+					if (draggedIndex !== null && draggedIndex !== targetIndex) {
+						const movedLetter = currentShuffledRack.splice(draggedIndex, 1)[0];
+						currentShuffledRack.splice(targetIndex, 0, movedLetter);
+						renderRack();
+					}
+				});
+
+				tile.addEventListener('dragend', () => {
+					tile.classList.remove('dragging');
+					document.querySelectorAll('.tile').forEach(t => t.classList.remove('drag-over'));
+					draggedIndex = null;
+				});
+
+				container.appendChild(tile);
+			});
+		}
+
+		function renderSolutionTracker() {
+			const statusEl = document.getElementById('tracker-status');
+			const slotsEl = document.getElementById('solution-slots');
+			slotsEl.innerHTML = '';
+
+			const total = currentItem.validWords.length;
+			const foundCount = foundWordsCurrentRack.length;
+
+			statusEl.innerText = \`Found \${foundCount} of \${total} Bingo\${total > 1 ? 's' : ''}\`;
+
+			currentItem.validWords.forEach(word => {
+				const pill = document.createElement('div');
+				if (foundWordsCurrentRack.includes(word)) {
+					pill.className = 'slot-pill found';
+					pill.innerText = word;
+				} else if (revealedWordsCurrentRack.includes(word)) {
+					pill.className = 'slot-pill revealed-pending';
+					pill.innerText = word;
+				} else {
+					pill.className = 'slot-pill';
+					pill.innerText = '•••••••';
+				}
+				slotsEl.appendChild(pill);
+			});
+		}
+
+		function submitGuess() {
+			const inputEl = document.getElementById('guess-input');
+			const guess = inputEl.value.trim().toUpperCase();
+			if (!guess) return;
+
+			if (currentItem.validWords.includes(guess)) {
+				if (foundWordsCurrentRack.includes(guess)) {
+					triggerInputError(inputEl);
+				} else {
+					foundWordsCurrentRack.push(guess);
+					
+					const revIndex = revealedWordsCurrentRack.indexOf(guess);
+					if (revIndex > -1) revealedWordsCurrentRack.splice(revIndex, 1);
+
+					inputEl.value = '';
+					renderSolutionTracker();
+
+					if (foundWordsCurrentRack.length === currentItem.validWords.length) {
+						currentItem.attempts++;
+						if (!isAssistedTurn) {
+							currentItem.correct++;
+							currentItem.streak++;
+							currentItem.weight = Math.max(1, currentItem.weight - 4);
+							addHistoryEntry('correct', \`\${foundWordsCurrentRack.join(', ')}\`, currentItem.validWords);
+						} else {
+							currentItem.streak = 0;
+							currentItem.weight += 6;
+							addHistoryEntry('assisted', \`\${foundWordsCurrentRack.join(', ')} (Revealed)\`, currentItem.validWords);
+						}
+
+						setTimeout(nextTurn, 300);
+					}
+				}
+			} else {
+				triggerInputError(inputEl);
+			}
+		}
+
+		function revealAnswers() {
+			isAssistedTurn = true;
+			currentItem.validWords.forEach(word => {
+				if (!foundWordsCurrentRack.includes(word) && !revealedWordsCurrentRack.includes(word)) {
+					revealedWordsCurrentRack.push(word);
+				}
+			});
+
+			renderSolutionTracker();
+			document.getElementById('guess-input').focus();
+		}
+
+		function skipBingo() {
+			currentItem.attempts++;
+			currentItem.streak = 0;
+			currentItem.weight += 12;
+
+			const slotsEl = document.getElementById('solution-slots');
+			slotsEl.innerHTML = '';
+			currentItem.validWords.forEach(word => {
+				const pill = document.createElement('div');
+				if (foundWordsCurrentRack.includes(word)) {
+					pill.className = 'slot-pill found';
+					pill.innerText = word;
+				} else {
+					pill.className = 'slot-pill skipped';
+					pill.innerText = word;
+				}
+				slotsEl.appendChild(pill);
+			});
+
+			addHistoryEntry('incorrect', \`SKIPPED (\${foundWordsCurrentRack.length}/\${currentItem.validWords.length})\`, currentItem.validWords);
+
+			setTimeout(nextTurn, 1400);
+		}
+
+		function triggerInputError(inputEl) {
+			inputEl.classList.add('error-shake');
+			setTimeout(() => inputEl.classList.remove('error-shake'), 350);
+		}
+
+		function addHistoryEntry(type, userText, validSolutions) {
+			const historyList = document.getElementById('history-list');
+			const card = document.createElement('div');
+			card.className = \`history-card \${type}\`;
+
+			const wordText = document.createElement('div');
+			wordText.className = 'history-word';
+			
+			let symbol = '✓';
+			if (type === 'assisted') symbol = '👁';
+			if (type === 'incorrect') symbol = '✗';
+
+			wordText.innerText = \`\${symbol} \${userText}\`;
+
+			const solText = document.createElement('div');
+			solText.className = 'history-solutions';
+			solText.innerText = \`Valid: \${validSolutions.join(', ')}\`;
+
+			card.appendChild(wordText);
+			card.appendChild(solText);
+			historyList.prepend(card);
+		}
+
+		document.getElementById('guess-input').addEventListener('keydown', function (e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				submitGuess();
+			}
+		});
+
+		function renderModalPills(activeWord) {
+			const container = document.getElementById('modal-anagram-pills');
+			container.innerHTML = '<span class="modal-pill-label">Rack Anagrams:</span>';
+
+			if (!currentItem || !currentItem.validWords) return;
+
+			currentItem.validWords.forEach(word => {
+				const pill = document.createElement('button');
+				pill.className = \`modal-word-pill \${word === activeWord ? 'active' : ''}\`;
+				pill.innerText = word;
+				pill.onclick = () => {
+					document.getElementById('modal-search-input').value = word;
+					loadModalIframe(word);
+					renderModalPills(word);
+				};
+				container.appendChild(pill);
+			});
+		}
+
+		function getCurrentSearchWord() {
+			const inputVal = document.getElementById('guess-input').value.trim();
+			if (inputVal) return inputVal;
+			if (foundWordsCurrentRack.length > 0) return foundWordsCurrentRack[foundWordsCurrentRack.length - 1];
+			if (currentItem && currentItem.validWords.length > 0) return currentItem.validWords[0];
+			return "";
+		}
+
+		function openDictionary() {
+			activeModalType = 'dict';
+			const word = getCurrentSearchWord();
+			document.getElementById('modal-title').innerText = "Wiktionary (Iframe Friendly)";
+			document.getElementById('modal-search-input').value = word;
+			renderModalPills(word);
+			loadModalIframe(word);
+			document.getElementById('bingo-modal-overlay').style.display = 'flex';
+		}
+
+		function openImageSearch() {
+			activeModalType = 'img';
+			const word = getCurrentSearchWord();
+			document.getElementById('modal-title').innerText = "Google Image Search";
+			document.getElementById('modal-search-input').value = word;
+			renderModalPills(word);
+			loadModalIframe(word);
+			document.getElementById('bingo-modal-overlay').style.display = 'flex';
+		}
+
+		function loadModalIframe(word) {
+			const iframe = document.getElementById('modal-iframe');
+			const extLink = document.getElementById('modal-external-link');
+
+			let iframeUrl = "";
+			let fallbackUrl = "";
+
+			const lowerWord = word ? word.toLowerCase() : "";
+
+			if (activeModalType === 'dict') {
+				iframeUrl = lowerWord ? \`https://en.m.wiktionary.org/wiki/\${encodeURIComponent(lowerWord)}\` : \`https://en.m.wiktionary.org/\`;
+				fallbackUrl = lowerWord ? \`https://www.merriam-webster.com/dictionary/\${encodeURIComponent(lowerWord)}\` : \`https://www.merriam-webster.com/\`;
+				extLink.innerText = "↗ Open Merriam-Webster";
+			} else {
+				iframeUrl = lowerWord ? \`https://www.google.com/search?tbm=isch&q=\${encodeURIComponent(lowerWord)}&igu=1\` : \`https://images.google.com\`;
+				fallbackUrl = lowerWord ? \`https://www.google.com/search?tbm=isch&q=\${encodeURIComponent(lowerWord)}\` : \`https://images.google.com\`;
+				extLink.innerText = "↗ Open Google Images";
+			}
+
+			iframe.src = iframeUrl;
+			extLink.href = fallbackUrl;
+		}
+
+		function triggerModalSearch() {
+			const word = document.getElementById('modal-search-input').value.trim();
+			loadModalIframe(word);
+			renderModalPills(word.toUpperCase());
+		}
+
+		function closeModal() {
+			document.getElementById('bingo-modal-overlay').style.display = 'none';
+			document.getElementById('modal-iframe').src = '';
+		}
+
+		function exportCSVProgress() {
+			let csvContent = "data:text/csv;charset=utf-8,Alphagram,ValidWords,Weight,Attempts,Correct,Streak\\n";
+			bingoData.forEach(item => {
+				const validStr = \`"\${item.validWords.join(';')}"\`;
+				csvContent += \`\${item.alphagram},\${validStr},\${item.weight},\${item.attempts},\${item.correct},\${item.streak}\\n\`;
+			});
+
+			const encodedUri = encodeURI(csvContent);
+			const link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", "scrabble_bingo_progress.csv");
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+
+		function handleCSVUpload(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			const reader = new FileReader();
+			reader.onload = function (e) {
+				const content = e.target.result;
+				const lines = content.split(/\\r\\n|\\n/);
+
+				if (lines[0].includes('Alphagram') && lines[0].includes('ValidWords')) {
+					bingoData = [];
+					for (let i = 1; i < lines.length; i++) {
+						if (!lines[i].trim()) continue;
+						const parts = lines[i].split(',');
+						if (parts.length >= 6) {
+							const alpha = parts[0].trim();
+							const words = parts[1].replace(/"/g, '').split(';');
+							const weight = parseInt(parts[2]);
+							const attempts = parseInt(parts[3]);
+							const correct = parseInt(parts[4]);
+							const streak = parseInt(parts[5]);
+
+							bingoData.push({
+								alphagram: alpha,
+								validWords: words,
+								weight: isNaN(weight) ? 10 : weight,
+								attempts: isNaN(attempts) ? 0 : attempts,
+								correct: isNaN(correct) ? 0 : correct,
+								streak: isNaN(streak) ? 0 : streak
+							});
+						}
+					}
+					nextTurn();
+				} else {
+					const rawWords = content.split(/[\\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
+					initLearner(rawWords);
+				}
+			};
+			reader.readAsText(file);
+		}
+
+		initLearner(defaultBingoWords);
+	<\/script>
+      `;
+      executeJSContent(bingoHTML);
+    }
+
+    // --- Key Trackers & Helpers ---
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key.length === 1) {
+        typedBuffer += e.key.toLowerCase();
+        
+        if (typedBuffer.length > 10) {
+          typedBuffer = typedBuffer.slice(-10);
+        }
+
+        if (typedBuffer.endsWith("back")) {
+          openHomeModal();
+          typedBuffer = "";
+        }
+
+        if (currentPhase === "game" && !isWordsModalOpen && typedBuffer.endsWith("words")) {
+          openWordsModal();
+          typedBuffer = "";
+        }
+
+        if (isWordsModalOpen && typedBuffer.endsWith("esc")) {
+          closeWordsModal();
+          typedBuffer = "";
+        }
+      }
+    });
+
+    function openHomeModal() {
+      currentPhase = "home";
+      document.getElementById("modalOverlay").style.display = "flex";
+    }
+
+    function closeHomeModal() {
+      document.getElementById("modalOverlay").style.display = "none";
+    }
+
+    function openWordsModal() {
+      isWordsModalOpen = true;
+      document.getElementById("wordsModal").style.display = "flex";
+    }
+
+    function closeWordsModal() {
+      isWordsModalOpen = false;
+      document.getElementById("wordsModal").style.display = "none";
+    }
+
+    function openRules() {
+      document.getElementById("rulesModal").style.display = "flex";
+    }
+
+    function closeRules() {
+      document.getElementById("rulesModal").style.display = "none";
+    }
+	</script>
+
+</body>
+
+</html>
