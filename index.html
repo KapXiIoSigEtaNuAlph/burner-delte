@@ -162,6 +162,30 @@
 			width: 80%;
 			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 		}
+        
+        .info-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ebd9ab;
+    color: #2c2416;
+    border: none;
+    font-family: Georgia, serif;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 99999; /* Increased to stay above all modals */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
 	</style>
 </head>
 
@@ -1852,17 +1876,39 @@
 			initBlankTileOverlay();
 	
 			// Pause & Swap Listeners for Keyboard Controls
-			document.addEventListener('keydown', function (e) {
-				if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-				if (!isGameStarted) return;
-				if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
-					e.preventDefault();
-					togglePause();
-				} else if (e.key === 's' || e.key === 'S') {
-					e.preventDefault();
-					toggleSwapModal();
-				}
-			});
+document.addEventListener('keydown', function (e) {
+    // Ignore input fields
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    // Handle Escape key to close any active modal
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof closeRules === 'function') closeRules();
+        
+        const wordsModal = document.getElementById('wordsModal');
+        if (wordsModal) wordsModal.style.display = 'none';
+
+        if (typeof closeSwapModal === 'function' && isSwapOpen) closeSwapModal();
+        return;
+    }
+
+    if (!isGameStarted) return;
+
+    // Prevent 's' or 'p' hotkeys from firing if wordsModal or rulesModal are active
+    const wordsModal = document.getElementById('wordsModal');
+    const rulesModal = document.getElementById('rulesModal');
+    const isModalActive = (wordsModal && wordsModal.style.display === 'flex') || 
+                          (rulesModal && rulesModal.style.display === 'flex');
+
+    if (isModalActive) return;
+
+    if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
+        e.preventDefault();
+        togglePause();
+    } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        toggleSwapModal();
+    }
+});
 	
 			async function openTimeSelect() {
 				let p1Pass = await customPrompt("Configure Player 1 Key:", "1", "Security Setup") || "p1";
