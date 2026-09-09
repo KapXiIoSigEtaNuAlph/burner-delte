@@ -6,6 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Scrabble Application</title>
 	<style>
+	body {
+	zoom: 125%; /* or 1.25, 150%, 1.1, etc. */
+	}
 		* {
 			box-sizing: border-box;
 			margin: 0;
@@ -242,43 +245,55 @@
 	</div>
 
 	<!-- Rules Modal -->
-<div id="rulesModal" class="popup-modal">
-  <div class="popup-content">
-    <b style="font-size:45px">Rules of the Game</b>
-    <div class="rules-body">
-      <p style="font-size:27px">Here's a guide to this relatively unintuitive system:</p>
-      <p style="font-size:25px">Quick Tips:</p>
-      <ul>
-        <li><b>Bac:</b> Typing the string of letters "bac" on any static page results in returning to the homepage.</li>
-        <li><b>S:</b> Typing "S" while it is your turn in a game of scrabble results in the same thing as pressing the SWAP button does (albeit a little faster).</li>
-        <li><b>P:</b> Typing "P" in a game of scrabble results in the same thing as pressing the PAUSE button does (albeit a little faster).</li>
-      </ul>
+	<div id="rulesModal" class="popup-modal">
+		<div class="popup-content">
+			<b style="font-size:45px">Rules of the Game</b>
+			<div class="rules-body">
+				<p style="font-size:27px">Here's a guide to this relatively unintuitive system:</p>
+				<p style="font-size:25px">Quick Tips:</p>
+				<ul>
+					<li><b>Bac:</b> Typing the string of letters "bac" on any static page results in returning to the
+						homepage.</li>
+					<li><b>S:</b> Typing "S" while it is your turn in a game of scrabble results in the same thing as
+						pressing the SWAP button does (albeit a little faster).</li>
+					<li><b>P:</b> Typing "P" in a game of scrabble results in the same thing as pressing the PAUSE
+						button does (albeit a little faster).</li>
+				</ul>
 
-      <p style="font-size:25px">A Few Letter Word Tips:</p>
-      <ul>
-        <li>You really don't need to memorize all of the words.</li>
-        <li>A ~40% set of words are what are used ~80% of the time.</li>
-        <li>I implore you all to print out the words and have them next to you when you are not playing competitively (of course).</li>
-        <li>Place an <i>emphasis</i> on learning the "clunky" (in my humble opinion) letters: "Q", "J", "Z", "X", <b>"V"</b>, "K", "C", "U".</li>
-        <li>If there is a letter you see consistently on your rack that you just can't seem to get rid of, and have to make low scoring plays, learn about that letter.</li>
-      </ul>
+				<p style="font-size:25px">A Few Letter Word Tips:</p>
+				<ul>
+					<li>You really don't need to memorize all of the words.</li>
+					<li>A ~40% set of words are what are used ~80% of the time.</li>
+					<li>I implore you all to print out the words and have them next to you when you are not playing
+						competitively (of course).</li>
+					<li>Place an <i>emphasis</i> on learning the "clunky" (in my humble opinion) letters: "Q", "J", "Z",
+						"X", <b>"V"</b>, "K", "C", "U".</li>
+					<li>If there is a letter you see consistently on your rack that you just can't seem to get rid of,
+						and have to make low scoring plays, learn about that letter.</li>
+				</ul>
 
-      <p style="font-size:25px">Tips about Bingos:</p>
-      <ul>
-        <li>A bingo is an event when a player uses all of the letters on their rack in a single turn. Due to this, they gain an extra 50 pts.</li>
-        <li>Bingos are very rare. I, myself have only seen 4 bingos being played over more than 100 games.</li>
-        <li>Bingos are most common (I would guess) early on in the game where there is a lot of open space.</li>
-        <li>If a bingo has not happened in the first 10 turns, there is a strong chance it will not occur.</li>
-        <li>~81.65% of Bingos usually have an "S", "E", "D", "T", "R", "G", and "Y" as their last letter.</li>
-        <li>Keep an eye out for the suffixes "ing", "ST", "LY", "ER", "ERS", "ED", "S", and "IER".</li>
-        <li><b><i>Sometimes, no matter how "good" your rack seems, there might not be a bingo on it!</i></b></li>
-      </ul>
-    </div>
-    <div class="close-btn-container">
-      <button class="gold-btn" onclick="closeRules()">Close</button>
-    </div>
-  </div>
-</div>
+				<p style="font-size:25px">Tips about Bingos:</p>
+				<ul>
+					<li>A bingo is an event when a player uses all of the letters on their rack in a single turn. Due to
+						this, they gain an extra 50 pts.</li>
+					<li>Bingos are very rare. I, myself have only seen 4 bingos being played over more than 100 games.
+					</li>
+					<li>Bingos are most common (I would guess) early on in the game where there is a lot of open space.
+					</li>
+					<li>If a bingo has not happened in the first 10 turns, there is a strong chance it will not occur.
+					</li>
+					<li>~81.65% of Bingos usually have an "S", "E", "D", "T", "R", "G", and "Y" as their last letter.
+					</li>
+					<li>Keep an eye out for the suffixes "ing", "ST", "LY", "ER", "ERS", "ED", "S", and "IER".</li>
+					<li><b><i>Sometimes, no matter how "good" your rack seems, there might not be a bingo on it!</i></b>
+					</li>
+				</ul>
+			</div>
+			<div class="close-btn-container">
+				<button class="gold-btn" onclick="closeRules()">Close</button>
+			</div>
+		</div>
+	</div>
 
 	<!-- Fullscreen Learn Words Modal Overlay -->
 	<div id="wordsModal" class="popup-modal">
