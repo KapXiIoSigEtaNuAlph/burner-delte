@@ -4615,2456 +4615,2580 @@
 			<template id="gameTemplate">
 				<!-- PASTE FULL HTML FILE 2 (GAME) BELOW THIS LINE -->
 				<!DOCTYPE html>
-				<html lang="en">
-
-				<head>
-					<meta charset="UTF-8">
-					<meta name="viewport" content="width=device-width, initial-scale=1.0">
-					<title>Scrabble System</title>
-					<style>
-						/* Modern Compact Day-Mode Theme */
-						* {
-							box-sizing: border-box;
-						}
-
-						body {
-							font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-							background-color: #f4f6f9;
-							color: #000000;
-							display: flex;
-							flex-direction: column;
-							align-items: center;
-							padding: 8px;
-							margin: 0;
-							min-height: 100vh;
-							position: relative;
-						}
-
-						/* Top Pause Button */
-						.corner-pause-btn {
-							position: absolute;
-							top: 8px;
-							right: 8px;
-							z-index: 100;
-							background-color: #E23F2B;
-						}
-
-						/* Full Black Pause Screen Overlay */
-						#pause-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100vw;
-							height: 100vh;
-							background-color: #000000;
-							display: none;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 3000;
-							color: white;
-						}
-
-						.unpause-btn {
-							background-color: #E8D3AE;
-							color: white;
-							font-size: 20px;
-							padding: 14px 32px;
-							border: none;
-							border-radius: 8px;
-							cursor: pointer;
-							font-weight: bold;
-							box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-							transition: all 0.2s;
-						}
-
-						.unpause-btn:hover {
-							background-color: #E23F2B;
-							transform: scale(1.05);
-						}
-
-						/* Swap Screen Overlay */
-						#swap-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100vw;
-							height: 100vh;
-							background-color: rgba(0, 0, 0, 0.95);
-							display: none;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 2500;
-							color: white;
-							gap: 20px;
-						}
-
-						#swap-overlay h2 {
-							margin: 0;
-							font-size: 24px;
-							letter-spacing: 1px;
-						}
-
-						.swap-tiles-container {
-							display: flex;
-							gap: 12px;
-							justify-content: center;
-							align-items: center;
-							margin: 20px 0;
-							min-height: 80px;
-						}
-
-						.swap-tile {
-							width: 60px;
-							height: 60px;
-							background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
-							color: #000000;
-							border-radius: 6px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							font-size: 28px;
-							font-weight: bold;
-							cursor: pointer;
-							box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-							position: relative;
-							user-select: none;
-							border: 2px solid #d4a373;
-							transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-						}
-
-						.swap-tile .points {
-							position: absolute;
-							bottom: 4px;
-							right: 6px;
-							font-size: 12px;
-							color: #7f8c8d;
-						}
-
-						.swap-tile.highlighted {
-							transform: translateY(-16px);
-							border-color: #e74c3c;
-							box-shadow: 0 8px 16px rgba(231, 76, 60, 0.6);
-						}
-
-						.swap-actions {
-							display: flex;
-							gap: 12px;
-						}
-
-						.swap-actions button {
-							font-size: 14px;
-							padding: 10px 20px;
-						}
-
-						/* Blank Tile Translucent Overlay */
-						#blank-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100vw;
-							height: 100vh;
-							background-color: rgba(0, 0, 0, 0.75);
-							display: none;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 2600;
-							color: white;
-							gap: 16px;
-						}
-
-						#blank-overlay h2 {
-							margin: 0;
-							font-size: 20px;
-							letter-spacing: 0.5px;
-						}
-
-						.blank-alphabet-grid {
-							display: grid;
-							grid-template-columns: repeat(7, 1fr);
-							gap: 8px;
-							max-width: 360px;
-						}
-
-						.blank-letter-btn {
-							width: 42px;
-							height: 42px;
-							background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
-							color: #000000;
-							border: 2px solid #d4a373;
-							border-radius: 6px;
-							font-size: 20px;
-							font-weight: bold;
-							cursor: pointer;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							transition: transform 0.15s, background 0.2s;
-							user-select: none;
-						}
-
-						.blank-letter-btn:hover {
-							background: #ffeaa7;
-							transform: scale(1.1);
-							border-color: #e67e22;
-						}
-
-						/* Custom Non-blocking Dialog Overlay */
-						#custom-dialog-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100vw;
-							height: 100vh;
-							background-color: rgba(0, 0, 0, 0.75);
-							display: none;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 4000;
-							color: white;
-						}
-
-						.custom-dialog-card {
-							background: #ffffff;
-							color: #1e293b;
-							border-radius: 10px;
-							padding: 20px 24px;
-							max-width: 400px;
-							width: 90%;
-							box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-							display: flex;
-							flex-direction: column;
-							gap: 14px;
-							text-align: center;
-						}
-
-						.custom-dialog-card h3 {
-							margin: 0;
-							font-size: 18px;
-							color: #0f172a;
-						}
-
-						.custom-dialog-card p {
-							margin: 0;
-							font-size: 14px;
-							color: #475569;
-							white-space: pre-wrap;
-						}
-
-						.custom-dialog-card input {
-							padding: 8px 12px;
-							border: 1px solid #cbd5e1;
-							border-radius: 6px;
-							font-size: 14px;
-							width: 100%;
-						}
-
-						.custom-dialog-actions {
-							display: flex;
-							justify-content: center;
-							gap: 10px;
-							margin-top: 4px;
-						}
-
-						/* End Game Summary Overlay */
-						#end-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100vw;
-							height: 100vh;
-							background-color: rgba(15, 23, 42, 0.85);
-							backdrop-filter: blur(5px);
-							display: none;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 2900;
-							color: white;
-							padding: 20px;
-						}
-
-						.end-card {
-							background: #ffffff;
-							color: #1e293b;
-							border-radius: 12px;
-							padding: 24px 32px;
-							max-width: 480px;
-							width: 100%;
-							box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-							display: flex;
-							flex-direction: column;
-							gap: 16px;
-							text-align: center;
-						}
-
-						.end-card h2 {
-							margin: 0;
-							color: #0f172a;
-							font-size: 24px;
-						}
-
-						.winner-banner {
-							font-size: 18px;
-							font-weight: bold;
-							color: #2ECC71;
-							background-color: #ebfbe8;
-							padding: 10px;
-							border-radius: 8px;
-							border: 1px solid #a3e635;
-						}
-
-						.stats-list {
-							display: flex;
-							flex-direction: column;
-							gap: 12px;
-							text-align: left;
-							background-color: #f8fafc;
-							padding: 14px;
-							border-radius: 8px;
-							border: 1px solid #e2e8f0;
-							max-height: 280px;
-							overflow-y: auto;
-						}
-
-						.player-stats-section {
-							display: flex;
-							flex-direction: column;
-							gap: 6px;
-						}
-
-						.player-stats-title {
-							font-weight: bold;
-							font-size: 13px;
-							color: #000000;
-							border-bottom: 1px solid #cbd5e1;
-							padding-bottom: 3px;
-							margin-bottom: 2px;
-						}
-
-						.stat-row {
-							display: flex;
-							justify-content: space-between;
-							align-items: center;
-							font-size: 12px;
-						}
-
-						.stat-label {
-							font-weight: bold;
-							color: #64748b;
-							text-transform: uppercase;
-							font-size: 10px;
-							letter-spacing: 0.5px;
-						}
-
-						.stat-val {
-							font-size: 12px;
-							font-weight: 600;
-							color: #1e293b;
-						}
-
-						/* Start Overlay & Time Selection Modals */
-						#start-overlay,
-						#time-overlay {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100%;
-							height: 100%;
-							background-color: #f4f6f9;
-							display: flex;
-							flex-direction: column;
-							justify-content: center;
-							align-items: center;
-							z-index: 2000;
-							padding: 20px;
-							text-align: center;
-						}
-
-						#time-overlay {
-							display: none;
-						}
-
-						#start-overlay h1,
-						#time-overlay h2 {
-							font-size: clamp(22px, 4vw, 32px);
-							margin-bottom: 15px;
-							color: #1e272e;
-						}
-
-						.time-options {
-							display: flex;
-							flex-direction: column;
-							gap: 10px;
-							width: 100%;
-							max-width: 320px;
-						}
-
-						.time-btn,
-						.play-btn {
-							background-color: #EBD6A0D4;
-							color: white;
-							font-size: 16px;
-							padding: 12px 18px;
-							border: none;
-							border-radius: 6px;
-							cursor: pointer;
-							font-weight: bold;
-							box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-							transition: all 0.2s;
-							width: 100%;
-						}
-
-						.time-btn:hover,
-						.play-btn:hover {
-							background-color: #E23F2B;
-							transform: translateY(-5px);
-						}
-
-						.custom-time-box {
-							display: none;
-							flex-direction: column;
-							gap: 8px;
-							background: #ffffff;
-							padding: 12px;
-							border-radius: 6px;
-							border: 1px solid #dcdde1;
-							margin-top: 8px;
-						}
-
-
-						.custom-inputs {
-							display: flex;
-							justify-content: space-between;
-							gap: 8px;
-						}
-
-						.custom-field {
-							display: flex;
-							flex-direction: column;
-							font-size: 12px;
-							text-align: left;
-							width: 50%;
-						}
-
-						.custom-field input {
-							padding: 6px;
-							border: 1px solid #b2bec3;
-							border-radius: 4px;
-							margin-top: 4px;
-						}
-
-						h1 {
-							margin: 4px 0 8px 0;
-							font-size: 20px;
-							color: #000000;
-						}
-
-						.container {
-							display: flex;
-							flex-direction: column;
-							align-items: center;
-							gap: 8px;
-							width: 100%;
-							max-width: 980px;
-						}
-
-						.game-layout {
-							display: flex;
-							flex-direction: row;
-							gap: 10px;
-							align-items: stretch;
-							justify-content: center;
-							width: 100%;
-						}
-
-						.main-play-area {
-							display: flex;
-							flex-direction: column;
-							gap: 8px;
-							flex: 1;
-							min-width: 0;
-						}
-
-						.board-container {
-							border: 2px solid #bdc3c7;
-							padding: 6px;
-							background-color: #f8f9fa;
-							border-radius: 4px;
-							width: 100%;
-						}
-
-						#board {
-							display: grid;
-							grid-template-columns: repeat(15, 1fr);
-							grid-template-rows: repeat(15, 1fr);
-							gap: 2px;
-							background-color: #b2bec3;
-							padding: 4px;
-							border-radius: 4px;
-							box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-							width: 100%;
-							aspect-ratio: 1 / 1;
-							flex-shrink: 0;
-						}
-
-						.cell {
-							background-color: #f8f9fa;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							font-size: clamp(7px, 1.8cqw, 11px);
-							font-weight: bold;
-							text-align: center;
-							text-transform: uppercase;
-							border-radius: 2px;
-							user-select: none;
-							color: #000000;
-							position: relative;
-							container-type: inline-size;
-						}
-
-						.bonus-label,
-						.points {
-							pointer-events: none;
-						}
-
-						.cell:has(.tile) .bonus-label {
-							display: none;
-						}
-
-						.tws {
-							background-color: #BA2F49;
-							color: white;
-						}
-
-						.dws {
-							background-color: #DDAFCC;
-							color: #b33939;
-						}
-
-						.tls {
-							background-color: #0D92D5;
-							color: white;
-						}
-
-						.dls {
-							background-color: #66ADE0;
-							color: #0a3d62;
-						}
-
-						.center-star {
-							background-color: #ffb8b8;
-							color: #ff7675;
-							font-size: clamp(10px, 3cqi, 16px);
-						}
-
-						.sidebar {
-							display: flex;
-							flex-direction: column;
-							gap: 8px;
-							background-color: #ffffff;
-							padding: 8px;
-							border-radius: 4px;
-							width: 300px;
-							border: 2px solid #bdc3c7;
-							flex-shrink: 0;
-						}
-
-						.player-card {
-							background-color: #f8f9fa;
-							padding: 6px 8px;
-							border-radius: 4px;
-							border: 1px solid #e2e8f0;
-							border-left: 4px solid transparent;
-							transition: all 0.3s;
-						}
-
-						.player-card.active {
-							border-left-color: #2ecc71;
-							background-color: #ebfbe8;
-							box-shadow: 0 2px 6px rgba(46, 204, 113, 0.15);
-						}
-
-						.player-card-header {
-							display: flex;
-							justify-content: space-between;
-							align-items: center;
-						}
-
-						.player-name {
-							font-weight: bold;
-							font-size: 12px;
-							color: #485e74;
-						}
-
-						.player-score {
-							font-size: 18px;
-							color: #2ecc71;
-							font-weight: bold;
-						}
-
-						.player-timer {
-							font-size: 11px;
-							font-weight: bold;
-							color: #e74c3c;
-							background: #fceae8;
-							padding: 2px 5px;
-							border-radius: 4px;
-						}
-
-						.turn-status {
-							font-size: 10px;
-							color: #2ECC71;
-							font-weight: 600;
-							margin-top: 1px;
-							display: none;
-						}
-
-						.player-card.active .turn-status {
-							display: block;
-						}
-
-						#pending-score-box {
-							background-color: #e67e22;
-							color: white;
-							text-align: center;
-							padding: 6px;
-							border-radius: 4px;
-							font-weight: bold;
-							font-size: 12px;
-						}
-
-						.tile-bag-pool {
-							background-color: #f8f9fa;
-							border-radius: 4px;
-							padding: 6px;
-							border: 1px solid #e2e8f0;
-						}
-
-						.pool-header {
-							display: flex;
-							flex-direction: column;
-							gap: 2px;
-							border-bottom: 1px solid #e2e8f0;
-							padding-bottom: 3px;
-							margin-bottom: 4px;
-							font-size: 10px;
-							color: #7f8c8d;
-						}
-
-						.pool-title strong,
-						.pool-stats strong {
-							color: #2e86de;
-						}
-
-						.pool-grid {
-							display: grid;
-							grid-template-columns: repeat(6, 1fr);
-							gap: 2px;
-						}
-
-						.pool-item {
-							background-color: #ffffff;
-							border: 1px solid #dcdde1;
-							padding: 2px 1px;
-							border-radius: 2px;
-							font-size: 9px;
-							font-weight: bold;
-							text-align: center;
-							color: #000000;
-						}
-
-						.pool-item span {
-							color: #e67e22;
-							font-size: 7px;
-						}
-
-						.pool-item.empty {
-							opacity: 0.25;
-							background-color: #f1f2f6;
-						}
-
-						/* Turn History UI Container */
-						.turn-history-box {
-							background-color: #f8f9fa;
-							border-radius: 6px;
-							padding: 8px;
-							border: 1px solid #cbd5e1;
-							display: flex;
-							flex-direction: column;
-							max-height: 280px;
-							flex: 1;
-						}
-
-						.turn-history-header {
-							display: flex;
-							align-items: center;
-							gap: 6px;
-							font-weight: bold;
-							font-size: 12px;
-							color: #334155;
-							border-bottom: 1px solid #e2e8f0;
-							padding-bottom: 6px;
-							margin-bottom: 6px;
-						}
-
-						.turn-history-content {
-							overflow-y: auto;
-							display: flex;
-							flex-direction: column;
-							gap: 8px;
-							flex: 1;
-							padding-right: 2px;
-						}
-
-						.history-card {
-							background-color: #f1f0f7;
-							border-radius: 8px;
-							padding: 8px 10px;
-							border: 1px solid #e0dcfa;
-							display: flex;
-							flex-direction: column;
-							gap: 6px;
-							box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-						}
-
-						.history-card-top {
-							display: flex;
-							align-items: center;
-							gap: 8px;
-						}
-
-						.history-avatar {
-							width: 28px;
-							height: 28px;
-							border-radius: 50%;
-							background: #3F5EFB;
-							background: linear-gradient(225deg, #76ABFB, #8313834D, #1B46FF9C);
-							color: white;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							font-weight: bold;
-							font-size: 11px;
-							flex-shrink: 0;
-						}
-
-						.history-meta {
-							display: flex;
-							flex-direction: column;
-							font-size: 10px;
-							color: #64748b;
-							line-height: 1.3;
-						}
-
-						.history-player-name {
-							font-weight: bold;
-							font-size: 11px;
-							color: #1e293b;
-						}
-
-						.history-words-wrapper {
-							display: flex;
-							flex-direction: column;
-							gap: 4px;
-							margin-top: 2px;
-						}
-
-						.history-word-row {
-							display: flex;
-							gap: 3px;
-						}
-
-						.history-tile {
-							width: 22px;
-							height: 22px;
-							background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
-							color: #000000;
-							border: 1px solid #d4a373;
-							border-radius: 3px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							font-size: 11px;
-							font-weight: bold;
-							position: relative;
-						}
-
-						/* Discolored Blank Tile on Board/Rack/History */
-						.history-tile.blank-assigned,
-						.tile.blank-assigned {
-							background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
-							color: white !important;
-							border-color: #c0392b !important;
-						}
-
-						.history-tile.blank-assigned .h-pts,
-						.tile.blank-assigned .points {
-							color: rgba(255, 255, 255, 0.85) !important;
-						}
-
-						.history-tile .h-pts {
-							position: absolute;
-							bottom: 1px;
-							right: 1px;
-							font-size: 6px;
-							color: #7f8c8d;
-						}
-
-						.racks-container {
-							display: flex;
-							flex-direction: column;
-							gap: 6px;
-							width: 100%;
-						}
-
-						.racks-flex-row {
-							display: flex;
-							gap: 8px;
-							width: 100%;
-						}
-
-						.player-rack-row {
-							flex: 1;
-							display: flex;
-							flex-direction: column;
-							gap: 4px;
-							background: #f8f9fa;
-							padding: 4px;
-							border-radius: 4px;
-							border: 1px solid #dcdde1;
-						}
-
-						.player-rack-row.active-turn {
-							border: 2px solid #2ECC71;
-							background-color: #fafdfa;
-						}
-
-						.rack-controls {
-							display: flex;
-							align-items: center;
-							gap: 4px;
-						}
-
-						.rack-label {
-							font-weight: bold;
-							font-size: 11px;
-							color: #000000;
-							margin-right: 2px;
-						}
-
-						.rack-controls button {
-							padding: 2px 6px;
-							font-size: 10px;
-						}
-
-						.rack-slot-wrapper {
-							display: flex;
-							align-items: center;
-							gap: 4px;
-							width: 100%;
-						}
-
-						.rack {
-							flex: 1;
-							display: flex;
-							gap: 2px;
-							min-height: 36px;
-							background-color: #dfe4ea;
-							padding: 2px;
-							border-radius: 4px;
-							align-items: center;
-							justify-content: center;
-							border: 1px dashed #b2bec3;
-						}
-
-						.rack-slot {
-							flex: 1;
-							aspect-ratio: 1 / 1;
-							background-color: rgba(255, 255, 255, 0.45);
-							border: 1px dashed #a4b0be;
-							border-radius: 3px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							position: relative;
-							container-type: inline-size;
-							min-width: 0;
-						}
-
-						.tile {
-							width: 100%;
-							height: 100%;
-							background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
-							color: #000000;
-							border-radius: 3px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							font-size: 55cqi;
-							font-weight: bold;
-							cursor: grab;
-							box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-							position: relative;
-							z-index: 10;
-							user-select: none;
-							border: 1px solid #d4a373;
-						}
-
-						.tile:active {
-							cursor: grabbing;
-						}
-
-						.tile .points {
-							position: absolute;
-							bottom: 3cqi;
-							right: 4cqi;
-							font-size: 22cqi;
-							color: #7f8c8d;
-						}
-
-						.tile.permanent {
-							background: linear-gradient(135deg, #f5cd79, #eccc68);
-							border-color: #f5b041;
-							cursor: not-allowed;
-						}
-
-						.rack.hidden .tile {
-							background: #ced6e0 !important;
-							color: transparent !important;
-							border: 1px solid #ced6e0 !important;
-							box-shadow: none !important;
-							pointer-events: none;
-						}
-
-						.rack.hidden .tile .points {
-							display: none !important;
-						}
-
-						.rack-slot-wrapper button {
-							padding: 4px 8px;
-							font-size: 10px;
-							height: 100%;
-						}
-
-						.controls {
-							display: flex;
-							gap: 8px;
-							margin-top: 2px;
-							justify-content: center;
-							width: 100%;
-						}
-
-						button {
-							background-color: #2ecc71;
-							border: none;
-							color: white;
-							padding: 6px 12px;
-							font-size: 11px;
-							font-weight: bold;
-							border-radius: 4px;
-							cursor: pointer;
-							box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-							transition: all 0.2s;
-						}
-
-						button:hover {
-							background-color: #D7AF90;
-							transform: translateY(-5px);
-						}
-
-						button.utility {
-							background-color: #54a0ff;
-						}
-
-						button.utility:hover {
-							background-color: #2980b9;
-						}
-
-						button.recall-btn {
-							background-color: #f1c40f;
-							color: #000000;
-						}
-
-						button.recall-btn:hover {
-							background-color: #d4ac0d;
-						}
-
-						button.swap-btn {
-							background-color: #e74c3c;
-							color: white;
-						}
-
-						button.swap-btn:hover {
-							background-color: #c0392b;
-						}
-
-						button.skip-btn {
-							background-color: #95a5a6;
-						}
-
-						button.skip-btn:hover {
-							background-color: #7f8c8d;
-						}
-
-						button.submit-btn:hover {
-							background-color: #27ae60;
-							/* Darker green matching the #2ecc71 base */
-						}
-
-						button.shuffle-btn {
-							background-color: #78e08f;
-							color: #1e272e;
-						}
-
-						button.shuffle-btn:hover {
-							background-color: #2ed573;
-						}
-
-						button.challenge-btn {
-							background-color: #dc2626;
-							color: #ffffff;
-							font-size: 14px;
-							font-weight: 800;
-							padding: 12px 16px;
-							width: 100%;
-							border: 2px solid #991b1b;
-							border-radius: 6px;
-							text-transform: uppercase;
-							letter-spacing: 0.5px;
-							box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-							transition: all 0.2s ease-in-out;
-						}
-
-						button.challenge-btn:hover {
-							background-color: #b91c1c;
-							border-color: #7f1d1d;
-							transform: translateY(-2px);
-							box-shadow: 0 6px 16px rgba(185, 28, 28, 0.5);
-						}
-
-						button.reset {
-							background-color: #ff6b6b;
-						}
-
-						button.reset:hover {
-							background-color: #ee5253;
-						}
-
-						@media (max-width: 800px) {
-							.game-layout {
-								flex-direction: column;
-								align-items: center;
-							}
-
-							.racks-flex-row {
-								flex-direction: column;
-							}
-
-							.main-play-area {
-								max-width: 100%;
-							}
-
-							.sidebar {
-								width: 100%;
-							}
-						}
-					</style>
-				</head>
-
-				<body>
-
-					<!-- Corner Pause Trigger -->
-					<button class="corner-pause-btn" id="pause-btn" onclick="togglePause()" title="Press Spacebar or P to pause">Pause</button>
-
-					<!-- Pause Overlay -->
-					<div id="pause-overlay">
-						<button class="unpause-btn" onclick="togglePause()">RESUME GAME</button>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scrabble System</title>
+	<style>
+		/* Modern Compact Day-Mode Theme */
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background-color: #f4f6f9;
+			color: #000000;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 8px;
+			margin: 0;
+			min-height: 100vh;
+			position: relative;
+		}
+
+		/* Top Pause Button */
+		.corner-pause-btn {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			z-index: 100;
+			background-color: #E23F2B;
+		}
+
+		/* Full Black Pause Screen Overlay */
+		#pause-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: #000000;
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 3000;
+			color: white;
+		}
+
+		.unpause-btn {
+			background-color: #E8D3AE;
+			color: white;
+			font-size: 20px;
+			padding: 14px 32px;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			font-weight: bold;
+			box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+			transition: all 0.2s;
+		}
+
+		.unpause-btn:hover {
+			background-color: #E23F2B;
+			transform: scale(1.05);
+		}
+
+		/* Swap Screen Overlay */
+		#swap-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(0, 0, 0, 0.95);
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 2500;
+			color: white;
+			gap: 20px;
+		}
+
+		#swap-overlay h2 {
+			margin: 0;
+			font-size: 24px;
+			letter-spacing: 1px;
+		}
+
+		.swap-tiles-container {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			align-items: center;
+			margin: 20px 0;
+			min-height: 80px;
+		}
+
+		.swap-tile {
+			width: 60px;
+			height: 60px;
+			background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
+			color: #000000;
+			border-radius: 6px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+			position: relative;
+			user-select: none;
+			border: 2px solid #d4a373;
+			transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.swap-tile .points {
+			position: absolute;
+			bottom: 4px;
+			right: 6px;
+			font-size: 12px;
+			color: #7f8c8d;
+		}
+
+		.swap-tile.highlighted {
+			transform: translateY(-16px);
+			border-color: #e74c3c;
+			box-shadow: 0 8px 16px rgba(231, 76, 60, 0.6);
+		}
+
+		.swap-actions {
+			display: flex;
+			gap: 12px;
+		}
+
+		.swap-actions button {
+			font-size: 14px;
+			padding: 10px 20px;
+		}
+
+		/* Blank Tile Translucent Overlay */
+		#blank-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(0, 0, 0, 0.75);
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 2600;
+			color: white;
+			gap: 16px;
+		}
+
+		#blank-overlay h2 {
+			margin: 0;
+			font-size: 20px;
+			letter-spacing: 0.5px;
+		}
+
+		.blank-alphabet-grid {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			gap: 8px;
+			max-width: 360px;
+		}
+
+		.blank-letter-btn {
+			width: 42px;
+			height: 42px;
+			background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
+			color: #000000;
+			border: 2px solid #d4a373;
+			border-radius: 6px;
+			font-size: 20px;
+			font-weight: bold;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: transform 0.15s, background 0.2s;
+			user-select: none;
+		}
+
+		.blank-letter-btn:hover {
+			background: #ffeaa7;
+			transform: scale(1.1);
+			border-color: #e67e22;
+		}
+
+		/* Custom Non-blocking Dialog Overlay */
+		#custom-dialog-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(0, 0, 0, 0.75);
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 4000;
+			color: white;
+		}
+
+		.custom-dialog-card {
+			background: #ffffff;
+			color: #1e293b;
+			border-radius: 10px;
+			padding: 20px 24px;
+			max-width: 400px;
+			width: 90%;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+			text-align: center;
+		}
+
+		.custom-dialog-card h3 {
+			margin: 0;
+			font-size: 18px;
+			color: #0f172a;
+		}
+
+		.custom-dialog-card p {
+			margin: 0;
+			font-size: 14px;
+			color: #475569;
+			white-space: pre-wrap;
+		}
+
+		.custom-dialog-card input {
+			padding: 8px 12px;
+			border: 1px solid #cbd5e1;
+			border-radius: 6px;
+			font-size: 14px;
+			width: 100%;
+		}
+
+		.custom-dialog-actions {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin-top: 4px;
+		}
+
+		/* End Game Summary Overlay */
+		#end-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(15, 23, 42, 0.85);
+			backdrop-filter: blur(5px);
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 2900;
+			color: white;
+			padding: 20px;
+		}
+
+		.end-card {
+			background: #ffffff;
+			color: #1e293b;
+			border-radius: 12px;
+			padding: 24px 32px;
+			max-width: 480px;
+			width: 100%;
+			box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			text-align: center;
+		}
+
+		.end-card h2 {
+			margin: 0;
+			color: #0f172a;
+			font-size: 24px;
+		}
+
+		.winner-banner {
+			font-size: 18px;
+			font-weight: bold;
+			color: #2ECC71;
+			background-color: #ebfbe8;
+			padding: 10px;
+			border-radius: 8px;
+			border: 1px solid #a3e635;
+		}
+
+		.stats-list {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			text-align: left;
+			background-color: #f8fafc;
+			padding: 14px;
+			border-radius: 8px;
+			border: 1px solid #e2e8f0;
+			max-height: 280px;
+			overflow-y: auto;
+		}
+
+		.player-stats-section {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+		}
+
+		.player-stats-title {
+			font-weight: bold;
+			font-size: 13px;
+			color: #000000;
+			border-bottom: 1px solid #cbd5e1;
+			padding-bottom: 3px;
+			margin-bottom: 2px;
+		}
+
+		.stat-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 12px;
+		}
+
+		.stat-label {
+			font-weight: bold;
+			color: #64748b;
+			text-transform: uppercase;
+			font-size: 10px;
+			letter-spacing: 0.5px;
+		}
+
+		.stat-val {
+			font-size: 12px;
+			font-weight: 600;
+			color: #1e293b;
+		}
+
+		/* Start Overlay & Time Selection Modals */
+		#start-overlay,
+		#time-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: #f4f6f9;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 2000;
+			padding: 20px;
+			text-align: center;
+		}
+
+		#time-overlay {
+			display: none;
+		}
+
+		#start-overlay h1,
+		#time-overlay h2 {
+			font-size: clamp(22px, 4vw, 32px);
+			margin-bottom: 15px;
+			color: #1e272e;
+		}
+
+		.time-options {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			width: 100%;
+			max-width: 320px;
+		}
+
+		.time-btn,
+		.play-btn {
+			background-color: #EBD6A0D4;
+			color: white;
+			font-size: 16px;
+			padding: 12px 18px;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: bold;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+			transition: all 0.2s;
+			width: 100%;
+		}
+
+		.time-btn:hover,
+		.play-btn:hover {
+			background-color: #E23F2B;
+			transform: translateY(-5px);
+		}
+
+		.custom-time-box {
+			display: none;
+			flex-direction: column;
+			gap: 8px;
+			background: #ffffff;
+			padding: 12px;
+			border-radius: 6px;
+			border: 1px solid #dcdde1;
+			margin-top: 8px;
+		}
+		
+
+		.custom-inputs {
+			display: flex;
+			justify-content: space-between;
+			gap: 8px;
+		}
+
+		.custom-field {
+			display: flex;
+			flex-direction: column;
+			font-size: 12px;
+			text-align: left;
+			width: 50%;
+		}
+
+		.custom-field input {
+			padding: 6px;
+			border: 1px solid #b2bec3;
+			border-radius: 4px;
+			margin-top: 4px;
+		}
+
+		h1 {
+			margin: 4px 0 8px 0;
+			font-size: 20px;
+			color: #000000;
+		}
+
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			width: 100%;
+			max-width: 980px;
+		}
+
+		.game-layout {
+			display: flex;
+			flex-direction: row;
+			gap: 10px;
+			align-items: stretch;
+			justify-content: center;
+			width: 100%;
+		}
+
+		.main-play-area {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			flex: 1;
+			min-width: 0;
+		}
+
+		.board-container {
+			border: 2px solid #bdc3c7;
+			padding: 6px;
+			background-color: #f8f9fa;
+			border-radius: 4px;
+			width: 100%;
+		}
+
+		#board {
+			display: grid;
+			grid-template-columns: repeat(15, 1fr);
+			grid-template-rows: repeat(15, 1fr);
+			gap: 2px;
+			background-color: #b2bec3;
+			padding: 4px;
+			border-radius: 4px;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+			width: 100%;
+			aspect-ratio: 1 / 1;
+			flex-shrink: 0;
+		}
+
+		.cell {
+			background-color: #f8f9fa;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: clamp(7px, 1.8cqw, 11px);
+			font-weight: bold;
+			text-align: center;
+			text-transform: uppercase;
+			border-radius: 2px;
+			user-select: none;
+			color: #000000;
+			position: relative;
+			container-type: inline-size;
+		}
+
+		.bonus-label,
+		.points {
+			pointer-events: none;
+		}
+
+		.cell:has(.tile) .bonus-label {
+			display: none;
+		}
+
+		.tws {
+			background-color: #BA2F49;
+			color: white;
+		}
+
+		.dws {
+			background-color: #DDAFCC;
+			color: #b33939;
+		}
+
+		.tls {
+			background-color: #0D92D5;
+			color: white;
+		}
+
+		.dls {
+			background-color: #66ADE0;
+			color: #0a3d62;
+		}
+
+		.center-star {
+			background-color: #ffb8b8;
+			color: #ff7675;
+			font-size: clamp(10px, 3cqi, 16px);
+		}
+
+		.sidebar {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			background-color: #ffffff;
+			padding: 8px;
+			border-radius: 4px;
+			width: 300px;
+			border: 2px solid #bdc3c7;
+			flex-shrink: 0;
+		}
+
+		.player-card {
+			background-color: #f8f9fa;
+			padding: 6px 8px;
+			border-radius: 4px;
+			border: 1px solid #e2e8f0;
+			border-left: 4px solid transparent;
+			transition: all 0.3s;
+		}
+
+		.player-card.active {
+			border-left-color: #2ecc71;
+			background-color: #ebfbe8;
+			box-shadow: 0 2px 6px rgba(46, 204, 113, 0.15);
+		}
+
+		.player-card-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.player-name {
+			font-weight: bold;
+			font-size: 12px;
+			color: #485e74;
+		}
+
+		.player-score {
+			font-size: 18px;
+			color: #2ecc71;
+			font-weight: bold;
+		}
+
+		.player-timer {
+			font-size: 11px;
+			font-weight: bold;
+			color: #e74c3c;
+			background: #fceae8;
+			padding: 2px 5px;
+			border-radius: 4px;
+		}
+
+		.turn-status {
+			font-size: 10px;
+			color: #2ECC71;
+			font-weight: 600;
+			margin-top: 1px;
+			display: none;
+		}
+
+		.player-card.active .turn-status {
+			display: block;
+		}
+
+		#pending-score-box {
+			background-color: #e67e22;
+			color: white;
+			text-align: center;
+			padding: 6px;
+			border-radius: 4px;
+			font-weight: bold;
+			font-size: 12px;
+		}
+
+		.tile-bag-pool {
+			background-color: #f8f9fa;
+			border-radius: 4px;
+			padding: 6px;
+			border: 1px solid #e2e8f0;
+		}
+
+		.pool-header {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+			border-bottom: 1px solid #e2e8f0;
+			padding-bottom: 3px;
+			margin-bottom: 4px;
+			font-size: 10px;
+			color: #7f8c8d;
+		}
+
+		.pool-title strong,
+		.pool-stats strong {
+			color: #2e86de;
+		}
+
+		.pool-grid {
+			display: grid;
+			grid-template-columns: repeat(6, 1fr);
+			gap: 2px;
+		}
+
+		.pool-item {
+			background-color: #ffffff;
+			border: 1px solid #dcdde1;
+			padding: 2px 1px;
+			border-radius: 2px;
+			font-size: 9px;
+			font-weight: bold;
+			text-align: center;
+			color: #000000;
+		}
+
+		.pool-item span {
+			color: #e67e22;
+			font-size: 7px;
+		}
+
+		.pool-item.empty {
+			opacity: 0.25;
+			background-color: #f1f2f6;
+		}
+
+		/* Turn History UI Container */
+		.turn-history-box {
+			background-color: #f8f9fa;
+			border-radius: 6px;
+			padding: 8px;
+			border: 1px solid #cbd5e1;
+			display: flex;
+			flex-direction: column;
+			max-height: 280px;
+			flex: 1;
+		}
+
+		.turn-history-header {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-weight: bold;
+			font-size: 12px;
+			color: #334155;
+			border-bottom: 1px solid #e2e8f0;
+			padding-bottom: 6px;
+			margin-bottom: 6px;
+		}
+
+		.turn-history-content {
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			flex: 1;
+			padding-right: 2px;
+		}
+
+		.history-card {
+			background-color: #f1f0f7;
+			border-radius: 8px;
+			padding: 8px 10px;
+			border: 1px solid #e0dcfa;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+		}
+
+		.history-card-top {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.history-avatar {
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+		background: #3F5EFB;
+		background: linear-gradient(225deg,#76ABFB,#8313834D,#1B46FF9C);
+			color: white;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: bold;
+			font-size: 11px;
+			flex-shrink: 0;
+		}
+
+		.history-meta {
+			display: flex;
+			flex-direction: column;
+			font-size: 10px;
+			color: #64748b;
+			line-height: 1.3;
+		}
+
+		.history-player-name {
+			font-weight: bold;
+			font-size: 11px;
+			color: #1e293b;
+		}
+
+		.history-words-wrapper {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			margin-top: 2px;
+		}
+
+		.history-word-row {
+			display: flex;
+			gap: 3px;
+		}
+
+		.history-tile {
+			width: 22px;
+			height: 22px;
+			background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
+			color: #000000;
+			border: 1px solid #d4a373;
+			border-radius: 3px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 11px;
+			font-weight: bold;
+			position: relative;
+		}
+
+		/* Discolored Blank Tile on Board/Rack/History */
+		.history-tile.blank-assigned,
+		.tile.blank-assigned {
+			background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
+			color: white !important;
+			border-color: #c0392b !important;
+		}
+
+		.history-tile.blank-assigned .h-pts,
+		.tile.blank-assigned .points {
+			color: rgba(255, 255, 255, 0.85) !important;
+		}
+
+		.history-tile .h-pts {
+			position: absolute;
+			bottom: 1px;
+			right: 1px;
+			font-size: 6px;
+			color: #7f8c8d;
+		}
+
+		.racks-container {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			width: 100%;
+		}
+
+		.racks-flex-row {
+			display: flex;
+			gap: 8px;
+			width: 100%;
+		}
+
+		.player-rack-row {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			background: #f8f9fa;
+			padding: 4px;
+			border-radius: 4px;
+			border: 1px solid #dcdde1;
+		}
+
+		.player-rack-row.active-turn {
+			border: 2px solid #2ECC71;
+			background-color: #fafdfa;
+		}
+
+		.rack-controls {
+			display: flex;
+			align-items: center;
+			gap: 4px;
+		}
+
+		.rack-label {
+			font-weight: bold;
+			font-size: 11px;
+			color: #000000;
+			margin-right: 2px;
+		}
+
+		.rack-controls button {
+			padding: 2px 6px;
+			font-size: 10px;
+		}
+
+		.rack-slot-wrapper {
+			display: flex;
+			align-items: center;
+			gap: 4px;
+			width: 100%;
+		}
+
+		.rack {
+			flex: 1;
+			display: flex;
+			gap: 2px;
+			min-height: 36px;
+			background-color: #dfe4ea;
+			padding: 2px;
+			border-radius: 4px;
+			align-items: center;
+			justify-content: center;
+			border: 1px dashed #b2bec3;
+		}
+
+		.rack-slot {
+			flex: 1;
+			aspect-ratio: 1 / 1;
+			background-color: rgba(255, 255, 255, 0.45);
+			border: 1px dashed #a4b0be;
+			border-radius: 3px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			position: relative;
+			container-type: inline-size;
+			min-width: 0;
+		}
+
+		.tile {
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(135deg, #FFF1DE 0%, #EFC79C 100%);
+			color: #000000;
+			border-radius: 3px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 55cqi;
+			font-weight: bold;
+			cursor: grab;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+			position: relative;
+			z-index: 10;
+			user-select: none;
+			border: 1px solid #d4a373;
+		}
+
+		.tile:active {
+			cursor: grabbing;
+		}
+
+		.tile .points {
+			position: absolute;
+			bottom: 3cqi;
+			right: 4cqi;
+			font-size: 22cqi;
+			color: #7f8c8d;
+		}
+
+		.tile.permanent {
+			background: linear-gradient(135deg, #f5cd79, #eccc68);
+			border-color: #f5b041;
+			cursor: not-allowed;
+		}
+
+		.rack.hidden .tile {
+			background: #ced6e0 !important;
+			color: transparent !important;
+			border: 1px solid #ced6e0 !important;
+			box-shadow: none !important;
+			pointer-events: none;
+		}
+
+		.rack.hidden .tile .points {
+			display: none !important;
+		}
+
+		.rack-slot-wrapper button {
+			padding: 4px 8px;
+			font-size: 10px;
+			height: 100%;
+		}
+
+		.controls {
+			display: flex;
+			gap: 8px;
+			margin-top: 2px;
+			justify-content: center;
+			width: 100%;
+		}
+
+		button {
+			background-color: #2ecc71;
+			border: none;
+			color: white;
+			padding: 6px 12px;
+			font-size: 11px;
+			font-weight: bold;
+			border-radius: 4px;
+			cursor: pointer;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+			transition: all 0.2s;
+		}
+
+		button:hover {
+			background-color: #D7AF90;
+			transform: translateY(-5px);
+		}
+
+		button.utility {
+			background-color: #54a0ff;
+		}
+
+		button.utility:hover {
+			background-color: #2980b9;
+		}
+
+		button.recall-btn {
+			background-color: #f1c40f;
+			color: #000000;
+		}
+
+		button.recall-btn:hover {
+			background-color: #d4ac0d;
+		}
+
+		button.swap-btn {
+			background-color: #e74c3c;
+			color: white;
+		}
+
+		button.swap-btn:hover {
+			background-color: #c0392b;
+		}
+
+		button.skip-btn {
+			background-color: #95a5a6;
+		}
+
+		button.skip-btn:hover {
+			background-color: #7f8c8d;
+		}
+		button.submit-btn:hover {
+			background-color: #27ae60; /* Darker green matching the #2ecc71 base */
+		}
+		button.shuffle-btn {
+			background-color: #78e08f;
+			color: #1e272e;
+		}
+
+		button.shuffle-btn:hover {
+			background-color: #2ed573;
+		}
+
+		button.challenge-btn {
+			background-color: #dc2626;
+			color: #ffffff;
+			font-size: 14px;
+			font-weight: 800;
+			padding: 12px 16px;
+			width: 100%;
+			border: 2px solid #991b1b;
+			border-radius: 6px;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+			transition: all 0.2s ease-in-out;
+		}
+
+		button.challenge-btn:hover {
+			background-color: #b91c1c;
+			border-color: #7f1d1d;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 16px rgba(185, 28, 28, 0.5);
+		}
+
+		button.reset {
+			background-color: #ff6b6b;
+		}
+
+		button.reset:hover {
+			background-color: #ee5253;
+		}
+
+		@media (max-width: 800px) {
+			.game-layout {
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.racks-flex-row {
+				flex-direction: column;
+			}
+
+			.main-play-area {
+				max-width: 100%;
+			}
+
+			.sidebar {
+				width: 100%;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- Corner Pause Trigger -->
+	<button class="corner-pause-btn" id="pause-btn" onclick="togglePause()" title="Press Spacebar or P to pause">Pause</button>
+
+	<!-- Pause Overlay -->
+	<div id="pause-overlay">
+		<button class="unpause-btn" onclick="togglePause()">RESUME GAME</button>
+	</div>
+
+	<!-- Swap Overlay -->
+	<div id="swap-overlay">
+		<h2 id="swap-title">SELECT TILES TO SWAP</h2>
+		<div class="swap-tiles-container" id="swap-tiles-container"></div>
+		<div class="swap-actions">
+			<button class="play-btn" onclick="executeSwap()">swap these tiles</button>
+			<button class="skip-btn" onclick="closeSwapModal()">Cancel</button>
+		</div>
+	</div>
+
+	<!-- Blank Tile Alphabet Overlay -->
+	<div id="blank-overlay">
+		<h2>SELECT LETTER FOR BLANK TILE</h2>
+		<div class="blank-alphabet-grid" id="blank-alphabet-grid"></div>
+	</div>
+
+	<!-- Custom Non-blocking Dialog Overlay -->
+	<div id="custom-dialog-overlay">
+		<div class="custom-dialog-card">
+			<h3 id="custom-dialog-title">Notification</h3>
+			<p id="custom-dialog-message"></p>
+			<input type="text" id="custom-dialog-input">
+			<div class="custom-dialog-actions">
+				<button id="custom-dialog-btn-ok" class="play-btn" style="width: auto; padding: 8px 20px;">OK</button>
+				<button id="custom-dialog-btn-cancel" class="skip-btn" style="width: auto; padding: 8px 20px;">Cancel</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Game Over Summary Modal -->
+	<div id="end-overlay">
+		<div class="end-card">
+			<h2>🏁 GAME OVER</h2>
+			<div class="winner-banner" id="winner-banner">Player 1 Wins!</div>
+			<div class="stats-list">
+				<div class="player-stats-section">
+					<div class="player-stats-title">👤 Player 1 Stats</div>
+					<div class="stat-row">
+						<span class="stat-label">⚡ Fastest Word:</span>
+						<span class="stat-val" id="p1-stat-fastest">N/A</span>
 					</div>
+					<div class="stat-row">
+						<span class="stat-label">🐢 Slowest Word:</span>
+						<span class="stat-val" id="p1-stat-slowest">N/A</span>
+					</div>
+					<div class="stat-row">
+						<span class="stat-label">📏 Longest Word:</span>
+						<span class="stat-val" id="p1-stat-longest">N/A</span>
+					</div>
+				</div>
 
-					<!-- Swap Overlay -->
-					<div id="swap-overlay">
-						<h2 id="swap-title">SELECT TILES TO SWAP</h2>
-						<div class="swap-tiles-container" id="swap-tiles-container"></div>
-						<div class="swap-actions">
-							<button class="play-btn" onclick="executeSwap()">swap these tiles</button>
-							<button class="skip-btn" onclick="closeSwapModal()">Cancel</button>
+				<div class="player-stats-section">
+					<div class="player-stats-title">👤 Player 2 Stats</div>
+					<div class="stat-row">
+						<span class="stat-label">⚡ Fastest Word:</span>
+						<span class="stat-val" id="p2-stat-fastest">N/A</span>
+					</div>
+					<div class="stat-row">
+						<span class="stat-label">🐢 Slowest Word:</span>
+						<span class="stat-val" id="p2-stat-slowest">N/A</span>
+					</div>
+					<div class="stat-row">
+						<span class="stat-label">📏 Longest Word:</span>
+						<span class="stat-val" id="p2-stat-longest">N/A</span>
+					</div>
+				</div>
+			</div>
+			<button class="play-btn" onclick="resetBoard()">PLAY AGAIN</button>
+		</div>
+	</div>
+
+	<!-- Start Overlay Screen -->
+	<div id="start-overlay">
+		<h1>Scrabble System</h1>
+		<button class="play-btn" onclick="openTimeSelect()">PLAY GAME</button>
+	</div>
+
+	<!-- Time Selection Screen -->
+	<div id="time-overlay">
+		<h2>SELECT GAME TIME</h2>
+		<div class="time-options">
+			<button class="time-btn" onclick="setGameTimer(600, 600)">10 MIN PER PLAYER</button>
+			<button class="time-btn" onclick="setGameTimer(1200, 1200)">20 MIN PER PLAYER</button>
+			<button class="time-btn" onclick="setGameTimer(1800, 1800)">30 MIN PER PLAYER</button>
+			<button class="time-btn" style="background-color: #ECDBAF;" onclick="toggleCustomTimeUI()">CUSTOM TIMES</button>
+
+			<div class="custom-time-box" id="custom-time-box">
+				<div class="custom-inputs">
+					<div class="custom-field">
+						<label for="p1-mins">Player 1 (Mins):</label>
+						<input type="number" id="p1-mins" min="0.0000001" max="180" value="15">
+					</div>
+						<div class="custom-field">
+							<label for="p2-mins">Player 2 (Mins):</label>
+							<input type="number" id="p2-mins" min="0.0000001" max="180" value="15">
+					</div>
+						</div>
+						<button class="play-btn" style="margin-top: 8px;" onclick="applyCustomTimer()">START MATCH</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="container">
+				<h1>Scrabble System</h1>
+
+				<div class="game-layout">
+					<!-- Main Left Play Column (Board + Racks) -->
+					<div class="main-play-area">
+						<div class="board-container">
+							<div id="board"></div>
+						</div>
+
+						<div class="racks-container">
+							<div class="racks-flex-row">
+								<div class="player-rack-row active-turn" id="row-p1">
+									<div class="rack-controls">
+										<div class="rack-label">Player 1</div>
+										<button class="shuffle-btn" onclick="shuffleRack(1)">Shuffle</button>
+										<button class="utility recall-btn" onclick="recallTiles(1)">Recall</button>
+										<button class="swap-btn" onclick="openSwapModal(1)">Swap</button>
+									</div>
+									<div class="rack-slot-wrapper">
+										<div id="rack-p1" class="rack" ondragover="allowDrop(event)"
+											ondrop="dropToRackFallback(event, 1)"></div>
+										<button class="utility" onclick="toggleRackVisibility(1)" id="hide-btn-1">Show</button>
+									</div>
+								</div>
+
+								<div class="player-rack-row" id="row-p2">
+									<div class="rack-controls">
+										<div class="rack-label">Player 2</div>
+										<button class="shuffle-btn" onclick="shuffleRack(2)">Shuffle</button>
+										<button class="utility recall-btn" onclick="recallTiles(2)">Recall</button>
+										<button class="swap-btn" onclick="openSwapModal(2)">Swap</button>
+									</div>
+									<div class="rack-slot-wrapper">
+										<div id="rack-p2" class="rack" ondragover="allowDrop(event)"
+											ondrop="dropToRackFallback(event, 2)"></div>
+										<button class="utility" onclick="toggleRackVisibility(2)" id="hide-btn-2">Show</button>
+									</div>
+								</div>
+							</div>
+
+							<div class="controls">
+	<button class="submit-btn" onclick="submitWord()">Submit Word</button>
+	<button class="utility skip-btn" onclick="skipTurn()">Skip Turn</button>
+	<button class="utility" style="background-color: #8e44ad;" onclick="exportGameToCSV()">Save Game</button>
+	<button class="utility" style="background-color: #9b59b6;" onclick="document.getElementById('csv-upload').click()">Load Game</button>
+	<button class="reset" onclick="resetBoard()">Reset Match</button>
+</div>
+
+<!-- Hidden File Input for CSV Upload -->
+<input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="importGameFromCSV(event)">
 						</div>
 					</div>
 
-					<!-- Blank Tile Alphabet Overlay -->
-					<div id="blank-overlay">
-						<h2>SELECT LETTER FOR BLANK TILE</h2>
-						<div class="blank-alphabet-grid" id="blank-alphabet-grid"></div>
-					</div>
-
-					<!-- Custom Non-blocking Dialog Overlay -->
-					<div id="custom-dialog-overlay">
-						<div class="custom-dialog-card">
-							<h3 id="custom-dialog-title">Notification</h3>
-							<p id="custom-dialog-message"></p>
-							<input type="text" id="custom-dialog-input">
-							<div class="custom-dialog-actions">
-								<button id="custom-dialog-btn-ok" class="play-btn" style="width: auto; padding: 8px 20px;">OK</button>
-								<button id="custom-dialog-btn-cancel" class="skip-btn" style="width: auto; padding: 8px 20px;">Cancel</button>
+					<!-- Sidebar Container Box -->
+					<div class="sidebar">
+						<div id="player1-card" class="player-card active">
+							<div class="player-card-header">
+								<div class="player-name">Player 1</div>
+								<div class="player-timer" id="timer-p1">10:00</div>
 							</div>
+							<div id="score-p1" class="player-score">0</div>
+							<div class="turn-status">Your Turn!</div>
+						</div>
+
+						<div id="player2-card" class="player-card">
+							<div class="player-card-header">
+								<div class="player-name">Player 2</div>
+								<div class="player-timer" id="timer-p2">10:00</div>
+							</div>
+							<div id="score-p2" class="player-score">0</div>
+							<div class="turn-status">Your Turn!</div>
+						</div>
+
+						<div id="pending-score-box">
+							Pending Turn: <span id="pending-value">0</span>
+						</div>
+
+						<button class="challenge-btn" onclick="triggerChallenge()">Challenge Word</button>
+
+						<div class="tile-bag-pool" id="tile-bag-pool">
+							<div class="pool-header">
+								<span class="pool-title">🧳 Remaining Pool: <strong id="pool-count">100</strong></span>
+								<span class="pool-stats">V: <strong id="vowel-count">0</strong> | C: <strong id="consonant-count">0</strong></span>
+							</div>
+							<div class="pool-grid" id="pool-grid"></div>
+						</div>
+
+						<!-- Turn History Container Box -->
+						<div class="turn-history-box">
+							<div class="turn-history-header">
+								📁 Turn History
+							</div>
+							<div class="turn-history-content" id="turn-history-list"></div>
 						</div>
 					</div>
+				</div>
+			</div>
 
-					<!-- Game Over Summary Modal -->
-					<div id="end-overlay">
-						<div class="end-card">
-							<h2>🏁 GAME OVER</h2>
-							<div class="winner-banner" id="winner-banner">Player 1 Wins!</div>
-							<div class="stats-list">
-								<div class="player-stats-section">
-									<div class="player-stats-title">👤 Player 1 Stats</div>
-									<div class="stat-row">
-										<span class="stat-label">⚡ Fastest Word:</span>
-										<span class="stat-val" id="p1-stat-fastest">N/A</span>
-									</div>
-									<div class="stat-row">
-										<span class="stat-label">🐢 Slowest Word:</span>
-										<span class="stat-val" id="p1-stat-slowest">N/A</span>
-									</div>
-									<div class="stat-row">
-										<span class="stat-label">📏 Longest Word:</span>
-										<span class="stat-val" id="p1-stat-longest">N/A</span>
-									</div>
-								</div>
+			<script>
+				const boardEl = document.getElementById('board');
+		const pendingValueEl = document.getElementById('pending-value');
 
-								<div class="player-stats-section">
-									<div class="player-stats-title">👤 Player 2 Stats</div>
-									<div class="stat-row">
-										<span class="stat-label">⚡ Fastest Word:</span>
-										<span class="stat-val" id="p2-stat-fastest">N/A</span>
-									</div>
-									<div class="stat-row">
-										<span class="stat-label">🐢 Slowest Word:</span>
-										<span class="stat-val" id="p2-stat-slowest">N/A</span>
-									</div>
-									<div class="stat-row">
-										<span class="stat-label">📏 Longest Word:</span>
-										<span class="stat-val" id="p2-stat-longest">N/A</span>
-									</div>
-								</div>
-							</div>
-							<button class="play-btn" onclick="resetBoard()">PLAY AGAIN</button>
-						</div>
-					</div>
+		// State Variables
+		let playerScores = { 1: 0, 2: 0 };
+		let playerPasswords = { 1: "p1", 2: "p2" };
+		let initialTimes = { 1: 600, 2: 600 };
+		let playerTimes = { 1: 600, 2: 600 };
+		let activePlayer = 1;
+		let tileBag = [];
+		let tileCounter = 0;
+		let turnCounter = 0;
+		let consecutiveSkips = 0;
+		let currentPendingScore = 0;
+		let gameTimerInterval = null;
+		let isPaused = false;
+		let isGameStarted = false;
+		let isSwapOpen = false;
+		let swappingPlayer = null;
+		let pendingBlankTile = null;
 
-					<!-- Start Overlay Screen -->
-					<div id="start-overlay">
-						<h1>Scrabble System</h1>
-						<button class="play-btn" onclick="openTimeSelect()">PLAY GAME</button>
-					</div>
+		// Move & Analytics Tracking
+		let turnStartTime = Date.now();
+		let playedWordsStats = [];
 
-					<!-- Time Selection Screen -->
-					<div id="time-overlay">
-						<h2>SELECT GAME TIME</h2>
-						<div class="time-options">
-							<button class="time-btn" onclick="setGameTimer(600, 600)">10 MIN PER PLAYER</button>
-							<button class="time-btn" onclick="setGameTimer(1200, 1200)">20 MIN PER PLAYER</button>
-							<button class="time-btn" onclick="setGameTimer(1800, 1800)">30 MIN PER PLAYER</button>
-							<button class="time-btn" style="background-color: #ECDBAF;" onclick="toggleCustomTimeUI()">CUSTOM TIMES</button>
+		// Challenge Snapshot Data
+		let turnStartSnapshot = null;
+		let challengeRollbackSnapshot = null;
+		let canChallenge = false;
+		let lastPlayerWhoPlayed = null;
 
-							<div class="custom-time-box" id="custom-time-box">
-								<div class="custom-inputs">
-									<div class="custom-field">
-										<label for="p1-mins">Player 1 (Mins):</label>
-										<input type="number" id="p1-mins" min="0.0000001" max="180" value="15">
-							</div>
-										<div class="custom-field">
-											<label for="p2-mins">Player 2 (Mins):</label>
-											<input type="number" id="p2-mins" min="0.0000001" max="180" value="15">
-							</div>
-										</div>
-										<button class="play-btn" style="margin-top: 8px;" onclick="applyCustomTimer()">START MATCH</button>
-									</div>
-								</div>
-							</div>
+		const letterValues = {
+			A:1, B:3, C:3, D:2, E:1, F:4, G:2, H:4, I:1, J:8, K:5, L:1, M:3, N:1, O:1, P:3, Q:10, R:1, S:1, T:1, U:1, V:4, W:4, X:8, Y:4, Z:10, ' ':0
+		};
+		const officialDistribution = {
+			A:9, B:2, C:2, D:4, E:12, F:2, G:3, H:2, I:9, J:1, K:1, L:4, M:2, N:6, O:8, P:2, Q:1, R:6, S:4, T:6, U:4, V:2, W:2, X:1, Y:2, Z:1, ' ':2
+		};
+		const TWS = ["0,0", "0,7", "0,14", "7,0", "7,14", "14,0", "14,7", "14,14"];
+		const DWS = ["1,1", "2,2", "3,3", "4,4", "10,10", "11,11", "12,12", "13,13", "1,13", "2,12", "3,11", "4,10", "10,4", "11,3", "12,2", "13,1"];
+		const TLS = ["1,5", "1,9", "5,1", "5,5", "5,9", "5,13", "9,1", "9,5", "9,9", "9,13", "13,5", "13,9"];
+		const DLS = ["0,3", "0,11", "2,6", "2,8", "3,0", "3,7", "3,14", "6,2", "6,6", "6,8", "6,12", "7,3", "7,11", "8,2", "8,6", "8,8", "8,12", "11,0", "11,7", "11,14", "12,6", "12,8", "14,3", "14,11"];
 
-							<div class="container">
-								<h1>Scrabble System</h1>
+		// --- CUSTOM NON-BLOCKING DIALOG SYSTEM ---
+		function customAlert(message, title = "Notification") {
+			return new Promise((resolve) => {
+				const overlay = document.getElementById('custom-dialog-overlay');
+				const titleEl = document.getElementById('custom-dialog-title');
+				const msgEl = document.getElementById('custom-dialog-message');
+				const inputEl = document.getElementById('custom-dialog-input');
+				const btnOk = document.getElementById('custom-dialog-btn-ok');
+				const btnCancel = document.getElementById('custom-dialog-btn-cancel');
 
-								<div class="game-layout">
-									<!-- Main Left Play Column (Board + Racks) -->
-									<div class="main-play-area">
-										<div class="board-container">
-											<div id="board"></div>
-										</div>
+				titleEl.innerText = title;
+				msgEl.innerText = message;
+				inputEl.style.display = 'none';
+				btnCancel.style.display = 'none';
+				btnOk.innerText = 'OK';
+				overlay.style.display = 'flex';
 
-										<div class="racks-container">
-											<div class="racks-flex-row">
-												<div class="player-rack-row active-turn" id="row-p1">
-													<div class="rack-controls">
-														<div class="rack-label">Player 1</div>
-														<button class="shuffle-btn" onclick="shuffleRack(1)">Shuffle</button>
-														<button class="utility recall-btn" onclick="recallTiles(1)">Recall</button>
-														<button class="swap-btn" onclick="openSwapModal(1)">Swap</button>
-													</div>
-													<div class="rack-slot-wrapper">
-														<div id="rack-p1" class="rack" ondragover="allowDrop(event)"
-															ondrop="dropToRackFallback(event, 1)"></div>
-														<button class="utility" onclick="toggleRackVisibility(1)" id="hide-btn-1">Show</button>
-													</div>
-												</div>
-
-												<div class="player-rack-row" id="row-p2">
-													<div class="rack-controls">
-														<div class="rack-label">Player 2</div>
-														<button class="shuffle-btn" onclick="shuffleRack(2)">Shuffle</button>
-														<button class="utility recall-btn" onclick="recallTiles(2)">Recall</button>
-														<button class="swap-btn" onclick="openSwapModal(2)">Swap</button>
-													</div>
-													<div class="rack-slot-wrapper">
-														<div id="rack-p2" class="rack" ondragover="allowDrop(event)"
-															ondrop="dropToRackFallback(event, 2)"></div>
-														<button class="utility" onclick="toggleRackVisibility(2)" id="hide-btn-2">Show</button>
-													</div>
-												</div>
-											</div>
-
-											<div class="controls">
-												<button class="submit-btn" onclick="submitWord()">Submit Word</button>
-												<button class="utility skip-btn" onclick="skipTurn()">Skip Turn</button>
-												<button class="reset" onclick="resetBoard()">Reset Match</button>
-											</div>
-										</div>
-									</div>
-
-									<!-- Sidebar Container Box -->
-									<div class="sidebar">
-										<div id="player1-card" class="player-card active">
-											<div class="player-card-header">
-												<div class="player-name">Player 1</div>
-												<div class="player-timer" id="timer-p1">10:00</div>
-											</div>
-											<div id="score-p1" class="player-score">0</div>
-											<div class="turn-status">Your Turn!</div>
-										</div>
-
-										<div id="player2-card" class="player-card">
-											<div class="player-card-header">
-												<div class="player-name">Player 2</div>
-												<div class="player-timer" id="timer-p2">10:00</div>
-											</div>
-											<div id="score-p2" class="player-score">0</div>
-											<div class="turn-status">Your Turn!</div>
-										</div>
-
-										<div id="pending-score-box">
-											Pending Turn: <span id="pending-value">0</span>
-										</div>
-
-										<button class="challenge-btn" onclick="triggerChallenge()">Challenge Word</button>
-
-										<div class="tile-bag-pool" id="tile-bag-pool">
-											<div class="pool-header">
-												<span class="pool-title">🧳 Remaining Pool: <strong id="pool-count">100</strong></span>
-												<span class="pool-stats">V: <strong id="vowel-count">0</strong> | C: <strong id="consonant-count">0</strong></span>
-											</div>
-											<div class="pool-grid" id="pool-grid"></div>
-										</div>
-
-										<!-- Turn History Container Box -->
-										<div class="turn-history-box">
-											<div class="turn-history-header">
-												📁 Turn History
-											</div>
-											<div class="turn-history-content" id="turn-history-list"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<script>
-								const boardEl = document.getElementById('board');
-				const pendingValueEl = document.getElementById('pending-value');
-		
-				// State Variables
-				let playerScores = { 1: 0, 2: 0 };
-				let playerPasswords = { 1: "p1", 2: "p2" };
-				let initialTimes = { 1: 600, 2: 600 };
-				let playerTimes = { 1: 600, 2: 600 };
-				let activePlayer = 1;
-				let tileBag = [];
-				let tileCounter = 0;
-				let turnCounter = 0;
-				let consecutiveSkips = 0;
-				let currentPendingScore = 0;
-				let gameTimerInterval = null;
-				let isPaused = false;
-				let isGameStarted = false;
-				let isSwapOpen = false;
-				let swappingPlayer = null;
-				let pendingBlankTile = null;
-		
-				// Move & Analytics Tracking
-				let turnStartTime = Date.now();
-				let playedWordsStats = [];
-		
-				// Challenge Snapshot Data
-				let turnStartSnapshot = null;
-				let challengeRollbackSnapshot = null;
-				let canChallenge = false;
-				let lastPlayerWhoPlayed = null;
-		
-				const letterValues = {
-					A:1, B:3, C:3, D:2, E:1, F:4, G:2, H:4, I:1, J:8, K:5, L:1, M:3, N:1, O:1, P:3, Q:10, R:1, S:1, T:1, U:1, V:4, W:4, X:8, Y:4, Z:10, ' ':0
+				btnOk.onclick = () => {
+					overlay.style.display = 'none';
+					resolve(true);
 				};
-				const officialDistribution = {
-					A:9, B:2, C:2, D:4, E:12, F:2, G:3, H:2, I:9, J:1, K:1, L:4, M:2, N:6, O:8, P:2, Q:1, R:6, S:4, T:6, U:4, V:2, W:2, X:1, Y:2, Z:1, ' ':2
+			});
+		}
+
+		function customPrompt(message, defaultValue = "", title = "Input Required") {
+			return new Promise((resolve) => {
+				const overlay = document.getElementById('custom-dialog-overlay');
+				const titleEl = document.getElementById('custom-dialog-title');
+				const msgEl = document.getElementById('custom-dialog-message');
+				const inputEl = document.getElementById('custom-dialog-input');
+				const btnOk = document.getElementById('custom-dialog-btn-ok');
+				const btnCancel = document.getElementById('custom-dialog-btn-cancel');
+
+				titleEl.innerText = title;
+				msgEl.innerText = message;
+				inputEl.value = defaultValue;
+				inputEl.style.display = 'block';
+				btnCancel.style.display = 'inline-block';
+				btnOk.innerText = 'Confirm';
+				btnCancel.innerText = 'Cancel';
+				overlay.style.display = 'flex';
+				inputEl.focus();
+
+				btnOk.onclick = () => {
+					overlay.style.display = 'none';
+					resolve(inputEl.value);
 				};
-				const TWS = ["0,0", "0,7", "0,14", "7,0", "7,14", "14,0", "14,7", "14,14"];
-				const DWS = ["1,1", "2,2", "3,3", "4,4", "10,10", "11,11", "12,12", "13,13", "1,13", "2,12", "3,11", "4,10", "10,4", "11,3", "12,2", "13,1"];
-				const TLS = ["1,5", "1,9", "5,1", "5,5", "5,9", "5,13", "9,1", "9,5", "9,9", "9,13", "13,5", "13,9"];
-				const DLS = ["0,3", "0,11", "2,6", "2,8", "3,0", "3,7", "3,14", "6,2", "6,6", "6,8", "6,12", "7,3", "7,11", "8,2", "8,6", "8,8", "8,12", "11,0", "11,7", "11,14", "12,6", "12,8", "14,3", "14,11"];
-		
-				// --- CUSTOM NON-BLOCKING DIALOG SYSTEM ---
-				function customAlert(message, title = "Notification") {
-					return new Promise((resolve) => {
-						const overlay = document.getElementById('custom-dialog-overlay');
-						const titleEl = document.getElementById('custom-dialog-title');
-						const msgEl = document.getElementById('custom-dialog-message');
-						const inputEl = document.getElementById('custom-dialog-input');
-						const btnOk = document.getElementById('custom-dialog-btn-ok');
-						const btnCancel = document.getElementById('custom-dialog-btn-cancel');
-		
-						titleEl.innerText = title;
-						msgEl.innerText = message;
-						inputEl.style.display = 'none';
-						btnCancel.style.display = 'none';
-						btnOk.innerText = 'OK';
-						overlay.style.display = 'flex';
-		
-						btnOk.onclick = () => {
-							overlay.style.display = 'none';
-							resolve(true);
-						};
-					});
-				}
-		
-				function customPrompt(message, defaultValue = "", title = "Input Required") {
-					return new Promise((resolve) => {
-						const overlay = document.getElementById('custom-dialog-overlay');
-						const titleEl = document.getElementById('custom-dialog-title');
-						const msgEl = document.getElementById('custom-dialog-message');
-						const inputEl = document.getElementById('custom-dialog-input');
-						const btnOk = document.getElementById('custom-dialog-btn-ok');
-						const btnCancel = document.getElementById('custom-dialog-btn-cancel');
-		
-						titleEl.innerText = title;
-						msgEl.innerText = message;
-						inputEl.value = defaultValue;
-						inputEl.style.display = 'block';
-						btnCancel.style.display = 'inline-block';
-						btnOk.innerText = 'Confirm';
-						btnCancel.innerText = 'Cancel';
-						overlay.style.display = 'flex';
-						inputEl.focus();
-		
-						btnOk.onclick = () => {
-							overlay.style.display = 'none';
-							resolve(inputEl.value);
-						};
-						btnCancel.onclick = () => {
-							overlay.style.display = 'none';
-							resolve(null);
-						};
-					});
-				}
-		
-				function customConfirm(message, title = "Confirmation") {
-					return new Promise((resolve) => {
-						const overlay = document.getElementById('custom-dialog-overlay');
-						const titleEl = document.getElementById('custom-dialog-title');
-						const msgEl = document.getElementById('custom-dialog-message');
-						const inputEl = document.getElementById('custom-dialog-input');
-						const btnOk = document.getElementById('custom-dialog-btn-ok');
-						const btnCancel = document.getElementById('custom-dialog-btn-cancel');
-		
-						titleEl.innerText = title;
-						msgEl.innerText = message;
-						inputEl.style.display = 'none';
-						btnCancel.style.display = 'inline-block';
-						btnOk.innerText = 'Yes';
-						btnCancel.innerText = 'No';
-						overlay.style.display = 'flex';
-		
-						btnOk.onclick = () => {
-							overlay.style.display = 'none';
-							resolve(true);
-						};
-						btnCancel.onclick = () => {
-							overlay.style.display = 'none';
-							resolve(false);
-						};
-					});
-				}
-		
-				// Initialize Blank Tile Overlay Grid
-				function initBlankTileOverlay() {
-					const grid = document.getElementById('blank-alphabet-grid');
-					grid.innerHTML = '';
-					const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-					alphabet.forEach(letter => {
-						const btn = document.createElement('button');
-						btn.classList.add('blank-letter-btn');
-						btn.innerText = letter;
-						btn.onclick = () => selectBlankLetter(letter);
-						grid.appendChild(btn);
-					});
-				}
-				initBlankTileOverlay();
-		
-				// Pause & Swap Listeners for Keyboard Controls
-				document.addEventListener('keydown', function (e) {
-					if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-					if (!isGameStarted) return;
-					if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
-						e.preventDefault();
-						togglePause();
-					} else if (e.key === 's' || e.key === 'S') {
-						e.preventDefault();
-						toggleSwapModal();
-					}
-				});
-		
-				async function openTimeSelect() {
-					let p1Pass = await customPrompt("Configure Player 1 Key:", "1", "Security Setup") || "p1";
-					let p2Pass = await customPrompt("Configure Player 2 Key:", "2", "Security Setup") || "p2";
-					playerPasswords[1] = p1Pass;
-					playerPasswords[2] = p2Pass;
-		
-					document.getElementById('start-overlay').style.display = 'none';
-					document.getElementById('time-overlay').style.display = 'flex';
-				}
-		
-				function toggleCustomTimeUI() {
-					const box = document.getElementById('custom-time-box');
-					box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-				}
-		
-				function applyCustomTimer() {
-					const p1Mins = parseInt(document.getElementById('p1-mins').value) || 10;
-					const p2Mins = parseInt(document.getElementById('p2-mins').value) || 10;
-					setGameTimer(p1Mins * 60, p2Mins * 60);
-				}
-		
-				function setGameTimer(sec1, sec2) {
-					initialTimes[1] = sec1;
-					initialTimes[2] = sec2;
-					playerTimes[1] = sec1;
-					playerTimes[2] = sec2;
-					document.getElementById('time-overlay').style.display = 'none';
-					isGameStarted = true;
-					initGame();
-					startTimerEngine();
-				}
-		
-				function startTimerEngine() {
-					if (gameTimerInterval) clearInterval(gameTimerInterval);
-					gameTimerInterval = setInterval(() => {
-						if (isPaused || !isGameStarted) return;
-						if (playerTimes[activePlayer] > 0) {
-							playerTimes[activePlayer]--;
-							updateTimerDisplay();
-						} else {
-							clearInterval(gameTimerInterval);
-							isGameStarted = false;
-							customAlert(`Time expired! Player ${activePlayer} loses their turn/game on clock depletion.`, "Time Expired");
-						}
-					}, 1000);
+				btnCancel.onclick = () => {
+					overlay.style.display = 'none';
+					resolve(null);
+				};
+			});
+		}
+
+		function customConfirm(message, title = "Confirmation") {
+			return new Promise((resolve) => {
+				const overlay = document.getElementById('custom-dialog-overlay');
+				const titleEl = document.getElementById('custom-dialog-title');
+				const msgEl = document.getElementById('custom-dialog-message');
+				const inputEl = document.getElementById('custom-dialog-input');
+				const btnOk = document.getElementById('custom-dialog-btn-ok');
+				const btnCancel = document.getElementById('custom-dialog-btn-cancel');
+
+				titleEl.innerText = title;
+				msgEl.innerText = message;
+				inputEl.style.display = 'none';
+				btnCancel.style.display = 'inline-block';
+				btnOk.innerText = 'Yes';
+				btnCancel.innerText = 'No';
+				overlay.style.display = 'flex';
+
+				btnOk.onclick = () => {
+					overlay.style.display = 'none';
+					resolve(true);
+				};
+				btnCancel.onclick = () => {
+					overlay.style.display = 'none';
+					resolve(false);
+				};
+			});
+		}
+
+		// Initialize Blank Tile Overlay Grid
+		function initBlankTileOverlay() {
+			const grid = document.getElementById('blank-alphabet-grid');
+			grid.innerHTML = '';
+			const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+			alphabet.forEach(letter => {
+				const btn = document.createElement('button');
+				btn.classList.add('blank-letter-btn');
+				btn.innerText = letter;
+				btn.onclick = () => selectBlankLetter(letter);
+				grid.appendChild(btn);
+			});
+		}
+		initBlankTileOverlay();
+
+		// Pause & Swap Listeners for Keyboard Controls
+		document.addEventListener('keydown', function (e) {
+			if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+			if (!isGameStarted) return;
+			if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
+				e.preventDefault();
+				togglePause();
+			} else if (e.key === 's' || e.key === 'S') {
+				e.preventDefault();
+				toggleSwapModal();
+			}
+		});
+
+		async function openTimeSelect() {
+			let p1Pass = await customPrompt("Configure Player 1 Key:", "1", "Security Setup") || "p1";
+			let p2Pass = await customPrompt("Configure Player 2 Key:", "2", "Security Setup") || "p2";
+			playerPasswords[1] = p1Pass;
+			playerPasswords[2] = p2Pass;
+
+			document.getElementById('start-overlay').style.display = 'none';
+			document.getElementById('time-overlay').style.display = 'flex';
+		}
+
+		function toggleCustomTimeUI() {
+			const box = document.getElementById('custom-time-box');
+			box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+		}
+
+		function applyCustomTimer() {
+			const p1Mins = parseInt(document.getElementById('p1-mins').value) || 10;
+			const p2Mins = parseInt(document.getElementById('p2-mins').value) || 10;
+			setGameTimer(p1Mins * 60, p2Mins * 60);
+		}
+
+		function setGameTimer(sec1, sec2) {
+			initialTimes[1] = sec1;
+			initialTimes[2] = sec2;
+			playerTimes[1] = sec1;
+			playerTimes[2] = sec2;
+			document.getElementById('time-overlay').style.display = 'none';
+			isGameStarted = true;
+			initGame();
+			startTimerEngine();
+		}
+
+		function startTimerEngine() {
+			if (gameTimerInterval) clearInterval(gameTimerInterval);
+			gameTimerInterval = setInterval(() => {
+				if (isPaused || !isGameStarted) return;
+				if (playerTimes[activePlayer] > 0) {
+					playerTimes[activePlayer]--;
 					updateTimerDisplay();
+				} else {
+					clearInterval(gameTimerInterval);
+					isGameStarted = false;
+					customAlert(`Time expired! Player ${activePlayer} loses their turn/game on clock depletion.`, "Time Expired");
 				}
-		
-				function updateTimerDisplay() {
-					document.getElementById('timer-p1').innerText = formatTime(playerTimes[1]);
-					document.getElementById('timer-p2').innerText = formatTime(playerTimes[2]);
+			}, 1000);
+			updateTimerDisplay();
+		}
+
+		function updateTimerDisplay() {
+			document.getElementById('timer-p1').innerText = formatTime(playerTimes[1]);
+			document.getElementById('timer-p2').innerText = formatTime(playerTimes[2]);
+		}
+
+		function formatTime(seconds) {
+			const m = Math.floor(seconds / 60);
+			const s = seconds % 60;
+			return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+		}
+
+		function togglePause() {
+			if (!isGameStarted || isSwapOpen) return;
+			isPaused = !isPaused;
+			const pauseOverlay = document.getElementById('pause-overlay');
+			pauseOverlay.style.display = isPaused ? 'flex' : 'none';
+		}
+
+		function toggleSwapModal() {
+			if (!isGameStarted || isPaused) return;
+			if (isSwapOpen) {
+				closeSwapModal();
+			} else {
+				openSwapModal(activePlayer);
+			}
+		}
+
+		function openSwapModal(playerNum) {
+			if (!isGameStarted || isPaused) return;
+			if (playerNum !== activePlayer) {
+				customAlert("You can only swap tiles during your active turn.");
+				return;
+			}
+			swappingPlayer = playerNum;
+			isSwapOpen = true;
+
+			recallTiles(playerNum);
+
+			document.getElementById('swap-title').innerText = `SWAP TILES (PLAYER ${playerNum})`;
+			const container = document.getElementById('swap-tiles-container');
+			container.innerHTML = '';
+
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const slots = rack.querySelectorAll('.rack-slot');
+
+			slots.forEach((slot, index) => {
+				const tile = slot.querySelector('.tile');
+				if (tile) {
+					const letter = tile.dataset.letter;
+					const points = tile.dataset.points;
+
+					const swapTile = document.createElement('div');
+					swapTile.classList.add('swap-tile');
+					swapTile.dataset.slotIndex = index;
+					swapTile.innerText = tile.dataset.isBlank === "true" ? '' : letter;
+
+					const ptSpan = document.createElement('span');
+					ptSpan.classList.add('points');
+					ptSpan.innerText = points;
+					swapTile.appendChild(ptSpan);
+
+					swapTile.onclick = () => {
+						swapTile.classList.toggle('highlighted');
+					};
+
+					container.appendChild(swapTile);
 				}
-		
-				function formatTime(seconds) {
-					const m = Math.floor(seconds / 60);
-					const s = seconds % 60;
-					return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+			});
+
+			document.getElementById('swap-overlay').style.display = 'flex';
+		}
+
+		function closeSwapModal() {
+			isSwapOpen = false;
+			swappingPlayer = null;
+			document.getElementById('swap-overlay').style.display = 'none';
+		}
+
+		function executeSwap() {
+			if (!swappingPlayer) return;
+
+			const container = document.getElementById('swap-tiles-container');
+			const highlightedTiles = container.querySelectorAll('.swap-tile.highlighted');
+
+			if (highlightedTiles.length === 0) {
+				customAlert("Please select at least one tile to swap.");
+				return;
+			}
+
+			if (tileBag.length < highlightedTiles.length) {
+				customAlert(`Not enough tiles in pool to swap. Only ${tileBag.length} tile(s) available.`);
+				return;
+			}
+
+			const rack = document.getElementById(`rack-p${swappingPlayer}`);
+			const slots = rack.querySelectorAll('.rack-slot');
+
+			let swappedLetters = [];
+
+			highlightedTiles.forEach(swapTile => {
+				const slotIdx = parseInt(swapTile.dataset.slotIndex);
+				const slot = slots[slotIdx];
+				const oldTile = slot.querySelector('.tile');
+
+				if (oldTile) {
+					swappedLetters.push(oldTile.dataset.isBlank === "true" ? ' ' : oldTile.dataset.letter);
+					slot.innerHTML = '';
+
+					const randomIndex = Math.floor(Math.random() * tileBag.length);
+					const newLetter = tileBag.splice(randomIndex, 1)[0];
+					const newTile = createTile(newLetter);
+					slot.appendChild(newTile);
 				}
-		
-				function togglePause() {
-					if (!isGameStarted || isSwapOpen) return;
-					isPaused = !isPaused;
-					const pauseOverlay = document.getElementById('pause-overlay');
-					pauseOverlay.style.display = isPaused ? 'flex' : 'none';
+			});
+
+			tileBag.push(...swappedLetters);
+
+			closeSwapModal();
+
+			canChallenge = false;
+			challengeRollbackSnapshot = null;
+			consecutiveSkips = 0;
+
+			activePlayer = activePlayer === 1 ? 2 : 1;
+			updateTurnInterface();
+
+			turnStartSnapshot = captureSnapshot();
+			calculateScore();
+			updateTileBagDisplay();
+		}
+
+		function openBlankModal() {
+			document.getElementById('blank-overlay').style.display = 'flex';
+		}
+
+		function closeBlankModal() {
+			document.getElementById('blank-overlay').style.display = 'none';
+		}
+
+		function selectBlankLetter(letter) {
+			if (pendingBlankTile) {
+				pendingBlankTile.dataset.letter = letter;
+				let ptsEl = pendingBlankTile.querySelector('.points');
+				pendingBlankTile.innerText = letter;
+				if (ptsEl) pendingBlankTile.appendChild(ptsEl);
+				pendingBlankTile.classList.add('blank-assigned');
+				calculateScore();
+			}
+			closeBlankModal();
+			pendingBlankTile = null;
+		}
+
+		function resetBlankTileIfBlank(tile) {
+			if (tile && tile.dataset.isBlank === "true") {
+				tile.dataset.letter = ' ';
+				let ptsEl = tile.querySelector('.points');
+				tile.innerText = '';
+				if (ptsEl) tile.appendChild(ptsEl);
+				tile.classList.remove('blank-assigned');
+			}
+		}
+
+		function initializeBag() {
+			tileBag = [];
+			for (let letter in officialDistribution) {
+				for (let i = 0; i < officialDistribution[letter]; i++) {
+					tileBag.push(letter);
 				}
-		
-				function toggleSwapModal() {
-					if (!isGameStarted || isPaused) return;
-					if (isSwapOpen) {
-						closeSwapModal();
-					} else {
-						openSwapModal(activePlayer);
+			}
+			updateTileBagDisplay();
+		}
+
+		function updateTileBagDisplay() {
+			const poolGrid = document.getElementById('pool-grid');
+			const poolCount = document.getElementById('pool-count');
+			const vowelCountEl = document.getElementById('vowel-count');
+			const consonantCountEl = document.getElementById('consonant-count');
+
+			poolGrid.innerHTML = '';
+			let boardCounts = {};
+			for (let letter in officialDistribution) { boardCounts[letter] = 0; }
+
+			const permanentTiles = boardEl.querySelectorAll('.tile.permanent');
+			permanentTiles.forEach(tile => {
+				let l = tile.dataset.isBlank === "true" ? ' ' : tile.dataset.letter;
+				if (boardCounts[l] !== undefined) boardCounts[l]++;
+			});
+			let unplayedPoolCounts = {};
+			let totalUnplayedCount = 0;
+			let vowelsTotal = 0;
+			let consonantsTotal = 0;
+			const vowelsList = ['A', 'E', 'I', 'O', 'U'];
+
+			const alphabetKeys = [' ', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+			alphabetKeys.forEach(key => {
+				let remaining = officialDistribution[key] - boardCounts[key];
+				if (remaining < 0) remaining = 0;
+				unplayedPoolCounts[key] = remaining;
+				totalUnplayedCount += remaining;
+
+				if (remaining > 0) {
+					if (vowelsList.includes(key)) vowelsTotal += remaining;
+					else if (key !== ' ') consonantsTotal += remaining;
+				}
+			});
+
+			poolCount.innerText = totalUnplayedCount;
+			vowelCountEl.innerText = vowelsTotal;
+			consonantCountEl.innerText = consonantsTotal;
+			alphabetKeys.forEach(key => {
+				const item = document.createElement('div');
+				item.classList.add('pool-item');
+				let displayKey = (key === ' ') ? '?' : key;
+				let count = unplayedPoolCounts[key];
+
+				if (count === 0) {
+					item.classList.add('empty');
+					item.innerText = displayKey;
+				} else if (count === 1) {
+					item.innerText = displayKey;
+				} else {
+					item.innerHTML = `${displayKey}<span>x${count}</span>`;
+				}
+				poolGrid.appendChild(item);
+			});
+		}
+
+		function createBoard() {
+			boardEl.innerHTML = '';
+			for (let r = 0; r < 15; r++) {
+				for (let c = 0; c < 15; c++) {
+					const coord = `${r},${c}`;
+					const cell = document.createElement('div');
+					cell.classList.add('cell');
+					cell.dataset.row = r;
+					cell.dataset.col = c;
+
+					cell.setAttribute('ondragover', 'allowDrop(event)');
+					cell.setAttribute('ondrop', 'dropToBoard(event)');
+
+					let labelText = '';
+					if (coord === "7,7") { cell.classList.add('center-star'); labelText = '★'; }
+					else if (TWS.includes(coord)) { cell.classList.add('tws'); labelText = 'TW'; }
+					else if (DWS.includes(coord)) { cell.classList.add('dws'); labelText = 'DW'; }
+					else if (TLS.includes(coord)) { cell.classList.add('tls'); labelText = 'TL'; }
+					else if (DLS.includes(coord)) { cell.classList.add('dls'); labelText = 'DL'; }
+
+					if (labelText) {
+						const label = document.createElement('span');
+						label.classList.add('bonus-label');
+						label.innerText = labelText;
+						cell.appendChild(label);
+					}
+					boardEl.appendChild(cell);
+				}
+			}
+		}
+
+		function buildRackSlots() {
+			const r1 = document.getElementById('rack-p1');
+			const r2 = document.getElementById('rack-p2');
+			r1.innerHTML = '';
+			r2.innerHTML = '';
+			for (let i = 0; i < 7; i++) {
+				const slot1 = document.createElement('div');
+				slot1.classList.add('rack-slot');
+				slot1.dataset.slotIndex = i;
+				slot1.setAttribute('ondragover', 'allowDrop(event)');
+				slot1.setAttribute('ondrop', 'dropToRackSlot(event, 1)');
+				r1.appendChild(slot1);
+
+				const slot2 = document.createElement('div');
+				slot2.classList.add('rack-slot');
+				slot2.dataset.slotIndex = i;
+				slot2.setAttribute('ondragover', 'allowDrop(event)');
+				slot2.setAttribute('ondrop', 'dropToRackSlot(event, 2)');
+				r2.appendChild(slot2);
+			}
+		}
+
+		function createTile(letter) {
+			tileCounter++;
+			const tile = document.createElement('div');
+			tile.classList.add('tile', 'fresh');
+			tile.id = `tile-${tileCounter}`;
+			tile.setAttribute('draggable', 'true');
+			tile.setAttribute('ondragstart', 'drag(event)');
+			tile.innerText = letter === ' ' ? '' : letter;
+
+			tile.dataset.letter = letter;
+			tile.dataset.isBlank = (letter === ' ') ? "true" : "false";
+			tile.dataset.points = letterValues[letter];
+			const points = document.createElement('span');
+			points.classList.add('points');
+			points.innerText = letterValues[letter];
+			tile.appendChild(points);
+
+			return tile;
+		}
+
+		function replenishRack(playerNum) {
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const slots = rack.querySelectorAll('.rack-slot');
+
+			slots.forEach(slot => {
+				if (!slot.firstElementChild && tileBag.length > 0) {
+					const randomIndex = Math.floor(Math.random() * tileBag.length);
+					const letter = tileBag.splice(randomIndex, 1)[0];
+					const tile = createTile(letter);
+					slot.appendChild(tile);
+				}
+			});
+		}
+
+		function shuffleRack(playerNum) {
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			if (rack.classList.contains('hidden')) {
+				customAlert("Please show the rack before shuffling tiles.");
+				return;
+			}
+			const slots = Array.from(rack.querySelectorAll('.rack-slot'));
+			const tiles = [];
+
+			slots.forEach(slot => {
+				if (slot.firstElementChild) {
+					tiles.push(slot.firstElementChild);
+					slot.innerHTML = '';
+				}
+			});
+
+			for (let i = tiles.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+			}
+
+			let tileIdx = 0;
+			for (let slot of slots) {
+				if (tileIdx < tiles.length) {
+					slot.appendChild(tiles[tileIdx]);
+					tileIdx++;
+				}
+			}
+		}
+
+		function recallTiles(playerNum) {
+			if (playerNum !== activePlayer) {
+				customAlert("You can only recall tiles during your active turn.");
+				return;
+			}
+			const freshTiles = boardEl.querySelectorAll('.tile.fresh');
+			if (freshTiles.length === 0) return;
+
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const slots = rack.querySelectorAll('.rack-slot');
+
+			freshTiles.forEach(tile => {
+				resetBlankTileIfBlank(tile);
+				for (let slot of slots) {
+					if (!slot.firstElementChild) {
+						slot.appendChild(tile);
+						break;
 					}
 				}
-		
-				function openSwapModal(playerNum) {
-					if (!isGameStarted || isPaused) return;
-					if (playerNum !== activePlayer) {
-						customAlert("You can only swap tiles during your active turn.");
-						return;
-					}
-					swappingPlayer = playerNum;
-					isSwapOpen = true;
-		
-					recallTiles(playerNum);
-		
-					document.getElementById('swap-title').innerText = `SWAP TILES (PLAYER ${playerNum})`;
-					const container = document.getElementById('swap-tiles-container');
-					container.innerHTML = '';
-		
+			});
+			calculateScore();
+		}
+
+		function skipTurn() {
+			recallTiles(activePlayer);
+
+			canChallenge = false;
+			challengeRollbackSnapshot = null;
+
+			consecutiveSkips++;
+
+			if (consecutiveSkips >= 4) {
+				triggerGameEnd();
+				return;
+			}
+
+			activePlayer = activePlayer === 1 ? 2 : 1;
+			updateTurnInterface();
+
+			turnStartSnapshot = captureSnapshot();
+			calculateScore();
+			updateTileBagDisplay();
+			customAlert(`Turn skipped! (${consecutiveSkips}/4 total skips). It is now Player ${activePlayer}'s turn.`);
+		}
+
+		function hideRack(playerNum) {
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const btn = document.getElementById(`hide-btn-${playerNum}`);
+			if (rack && btn) {
+				rack.classList.add('hidden');
+				btn.innerText = "Show";
+			}
+		}
+
+		async function toggleRackVisibility(playerNum) {
+			if (playerNum !== activePlayer) {
+				await customAlert("You can only reveal tiles during your active turn.");
+				return;
+			}
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const btn = document.getElementById(`hide-btn-${playerNum}`);
+			if (rack.classList.contains('hidden')) {
+				const passwordInput = await customPrompt(`Enter Player ${playerNum} Security Key:`, "", "Rack Verification");
+				if (passwordInput === playerPasswords[playerNum]) {
+					rack.classList.remove('hidden');
+					btn.innerText = "Hide";
+				} else if (passwordInput !== null) {
+					customAlert("Security Handshake Failure: Invalid Key.");
+				}
+			} else {
+				rack.classList.add('hidden');
+				btn.innerText = "Show";
+			}
+		}
+
+		function updateTurnInterface() {
+			document.getElementById('player1-card').classList.toggle('active', activePlayer === 1);
+			document.getElementById('player2-card').classList.toggle('active', activePlayer === 2);
+			document.getElementById('row-p1').classList.toggle('active-turn', activePlayer === 1);
+			document.getElementById('row-p2').classList.toggle('active-turn', activePlayer === 2);
+
+			// General Rule: Force hide both tile racks whenever turn changes
+			hideRack(1);
+			hideRack(2);
+
+			turnStartTime = Date.now();
+		}
+
+		function refreshScoreInterface() {
+			document.getElementById('score-p1').innerText = playerScores[1];
+			document.getElementById('score-p2').innerText = playerScores[2];
+		}
+
+		function drag(ev) {
+			const tile = ev.target;
+			if (tile.classList.contains('permanent')) {
+				ev.preventDefault();
+				return;
+			}
+			const originRack = tile.closest('.rack');
+			if (originRack && originRack.id !== `rack-p${activePlayer}`) {
+				ev.preventDefault();
+				return;
+			}
+			ev.dataTransfer.setData("text/plain", tile.id);
+		}
+
+		function allowDrop(ev) {
+			ev.preventDefault();
+		}
+
+		function dropToBoard(ev) {
+			ev.preventDefault();
+			const data = ev.dataTransfer.getData("text/plain");
+			const tile = document.getElementById(data);
+			if (!tile) return;
+
+			let targetCell = ev.target.closest('.cell');
+			if (!targetCell) return;
+			if (targetCell.querySelector('.tile')) return;
+
+			targetCell.appendChild(tile);
+			calculateScore();
+
+			if (tile.dataset.isBlank === "true") {
+				pendingBlankTile = tile;
+				openBlankModal();
+			}
+		}
+
+		function dropToRackSlot(ev, playerNum) {
+			ev.preventDefault();
+			if (playerNum !== activePlayer) return;
+			const data = ev.dataTransfer.getData("text/plain");
+			const tile = document.getElementById(data);
+			if (!tile) return;
+
+			resetBlankTileIfBlank(tile);
+
+			const targetSlot = ev.target.closest('.rack-slot');
+			if (!targetSlot) return;
+
+			if (targetSlot.querySelector('.tile')) {
+				const existingTile = targetSlot.querySelector('.tile');
+				const origin = tile.parentElement;
+
+				if (origin && origin.classList.contains('rack-slot')) {
+					origin.appendChild(existingTile);
+					targetSlot.appendChild(tile);
+				} else {
 					const rack = document.getElementById(`rack-p${playerNum}`);
 					const slots = rack.querySelectorAll('.rack-slot');
-		
-					slots.forEach((slot, index) => {
-						const tile = slot.querySelector('.tile');
-						if (tile) {
-							const letter = tile.dataset.letter;
-							const points = tile.dataset.points;
-		
-							const swapTile = document.createElement('div');
-							swapTile.classList.add('swap-tile');
-							swapTile.dataset.slotIndex = index;
-							swapTile.innerText = tile.dataset.isBlank === "true" ? '' : letter;
-		
-							const ptSpan = document.createElement('span');
-							ptSpan.classList.add('points');
-							ptSpan.innerText = points;
-							swapTile.appendChild(ptSpan);
-		
-							swapTile.onclick = () => {
-								swapTile.classList.toggle('highlighted');
-							};
-		
-							container.appendChild(swapTile);
-						}
-					});
-		
-					document.getElementById('swap-overlay').style.display = 'flex';
-				}
-		
-				function closeSwapModal() {
-					isSwapOpen = false;
-					swappingPlayer = null;
-					document.getElementById('swap-overlay').style.display = 'none';
-				}
-		
-				function executeSwap() {
-					if (!swappingPlayer) return;
-		
-					const container = document.getElementById('swap-tiles-container');
-					const highlightedTiles = container.querySelectorAll('.swap-tile.highlighted');
-		
-					if (highlightedTiles.length === 0) {
-						customAlert("Please select at least one tile to swap.");
-						return;
-					}
-		
-					if (tileBag.length < highlightedTiles.length) {
-						customAlert(`Not enough tiles in pool to swap. Only ${tileBag.length} tile(s) available.`);
-						return;
-					}
-		
-					const rack = document.getElementById(`rack-p${swappingPlayer}`);
-					const slots = rack.querySelectorAll('.rack-slot');
-		
-					let swappedLetters = [];
-		
-					highlightedTiles.forEach(swapTile => {
-						const slotIdx = parseInt(swapTile.dataset.slotIndex);
-						const slot = slots[slotIdx];
-						const oldTile = slot.querySelector('.tile');
-		
-						if (oldTile) {
-							swappedLetters.push(oldTile.dataset.isBlank === "true" ? ' ' : oldTile.dataset.letter);
-							slot.innerHTML = '';
-		
-							const randomIndex = Math.floor(Math.random() * tileBag.length);
-							const newLetter = tileBag.splice(randomIndex, 1)[0];
-							const newTile = createTile(newLetter);
-							slot.appendChild(newTile);
-						}
-					});
-		
-					tileBag.push(...swappedLetters);
-		
-					closeSwapModal();
-		
-					canChallenge = false;
-					challengeRollbackSnapshot = null;
-					consecutiveSkips = 0;
-		
-					activePlayer = activePlayer === 1 ? 2 : 1;
-					updateTurnInterface();
-		
-					turnStartSnapshot = captureSnapshot();
-					calculateScore();
-					updateTileBagDisplay();
-				}
-		
-				function openBlankModal() {
-					document.getElementById('blank-overlay').style.display = 'flex';
-				}
-		
-				function closeBlankModal() {
-					document.getElementById('blank-overlay').style.display = 'none';
-				}
-		
-				function selectBlankLetter(letter) {
-					if (pendingBlankTile) {
-						pendingBlankTile.dataset.letter = letter;
-						let ptsEl = pendingBlankTile.querySelector('.points');
-						pendingBlankTile.innerText = letter;
-						if (ptsEl) pendingBlankTile.appendChild(ptsEl);
-						pendingBlankTile.classList.add('blank-assigned');
-						calculateScore();
-					}
-					closeBlankModal();
-					pendingBlankTile = null;
-				}
-		
-				function resetBlankTileIfBlank(tile) {
-					if (tile && tile.dataset.isBlank === "true") {
-						tile.dataset.letter = ' ';
-						let ptsEl = tile.querySelector('.points');
-						tile.innerText = '';
-						if (ptsEl) tile.appendChild(ptsEl);
-						tile.classList.remove('blank-assigned');
-					}
-				}
-		
-				function initializeBag() {
-					tileBag = [];
-					for (let letter in officialDistribution) {
-						for (let i = 0; i < officialDistribution[letter]; i++) {
-							tileBag.push(letter);
-						}
-					}
-					updateTileBagDisplay();
-				}
-		
-				function updateTileBagDisplay() {
-					const poolGrid = document.getElementById('pool-grid');
-					const poolCount = document.getElementById('pool-count');
-					const vowelCountEl = document.getElementById('vowel-count');
-					const consonantCountEl = document.getElementById('consonant-count');
-		
-					poolGrid.innerHTML = '';
-					let boardCounts = {};
-					for (let letter in officialDistribution) { boardCounts[letter] = 0; }
-		
-					const permanentTiles = boardEl.querySelectorAll('.tile.permanent');
-					permanentTiles.forEach(tile => {
-						let l = tile.dataset.isBlank === "true" ? ' ' : tile.dataset.letter;
-						if (boardCounts[l] !== undefined) boardCounts[l]++;
-					});
-					let unplayedPoolCounts = {};
-					let totalUnplayedCount = 0;
-					let vowelsTotal = 0;
-					let consonantsTotal = 0;
-					const vowelsList = ['A', 'E', 'I', 'O', 'U'];
-		
-					const alphabetKeys = [' ', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-					alphabetKeys.forEach(key => {
-						let remaining = officialDistribution[key] - boardCounts[key];
-						if (remaining < 0) remaining = 0;
-						unplayedPoolCounts[key] = remaining;
-						totalUnplayedCount += remaining;
-		
-						if (remaining > 0) {
-							if (vowelsList.includes(key)) vowelsTotal += remaining;
-							else if (key !== ' ') consonantsTotal += remaining;
-						}
-					});
-		
-					poolCount.innerText = totalUnplayedCount;
-					vowelCountEl.innerText = vowelsTotal;
-					consonantCountEl.innerText = consonantsTotal;
-					alphabetKeys.forEach(key => {
-						const item = document.createElement('div');
-						item.classList.add('pool-item');
-						let displayKey = (key === ' ') ? '?' : key;
-						let count = unplayedPoolCounts[key];
-		
-						if (count === 0) {
-							item.classList.add('empty');
-							item.innerText = displayKey;
-						} else if (count === 1) {
-							item.innerText = displayKey;
-						} else {
-							item.innerHTML = `${displayKey}<span>x${count}</span>`;
-						}
-						poolGrid.appendChild(item);
-					});
-				}
-		
-				function createBoard() {
-					boardEl.innerHTML = '';
-					for (let r = 0; r < 15; r++) {
-						for (let c = 0; c < 15; c++) {
-							const coord = `${r},${c}`;
-							const cell = document.createElement('div');
-							cell.classList.add('cell');
-							cell.dataset.row = r;
-							cell.dataset.col = c;
-		
-							cell.setAttribute('ondragover', 'allowDrop(event)');
-							cell.setAttribute('ondrop', 'dropToBoard(event)');
-		
-							let labelText = '';
-							if (coord === "7,7") { cell.classList.add('center-star'); labelText = '★'; }
-							else if (TWS.includes(coord)) { cell.classList.add('tws'); labelText = 'TW'; }
-							else if (DWS.includes(coord)) { cell.classList.add('dws'); labelText = 'DW'; }
-							else if (TLS.includes(coord)) { cell.classList.add('tls'); labelText = 'TL'; }
-							else if (DLS.includes(coord)) { cell.classList.add('dls'); labelText = 'DL'; }
-		
-							if (labelText) {
-								const label = document.createElement('span');
-								label.classList.add('bonus-label');
-								label.innerText = labelText;
-								cell.appendChild(label);
-							}
-							boardEl.appendChild(cell);
-						}
-					}
-				}
-		
-				function buildRackSlots() {
-					const r1 = document.getElementById('rack-p1');
-					const r2 = document.getElementById('rack-p2');
-					r1.innerHTML = '';
-					r2.innerHTML = '';
-					for (let i = 0; i < 7; i++) {
-						const slot1 = document.createElement('div');
-						slot1.classList.add('rack-slot');
-						slot1.dataset.slotIndex = i;
-						slot1.setAttribute('ondragover', 'allowDrop(event)');
-						slot1.setAttribute('ondrop', 'dropToRackSlot(event, 1)');
-						r1.appendChild(slot1);
-		
-						const slot2 = document.createElement('div');
-						slot2.classList.add('rack-slot');
-						slot2.dataset.slotIndex = i;
-						slot2.setAttribute('ondragover', 'allowDrop(event)');
-						slot2.setAttribute('ondrop', 'dropToRackSlot(event, 2)');
-						r2.appendChild(slot2);
-					}
-				}
-		
-				function createTile(letter) {
-					tileCounter++;
-					const tile = document.createElement('div');
-					tile.classList.add('tile', 'fresh');
-					tile.id = `tile-${tileCounter}`;
-					tile.setAttribute('draggable', 'true');
-					tile.setAttribute('ondragstart', 'drag(event)');
-					tile.innerText = letter === ' ' ? '' : letter;
-		
-					tile.dataset.letter = letter;
-					tile.dataset.isBlank = (letter === ' ') ? "true" : "false";
-					tile.dataset.points = letterValues[letter];
-					const points = document.createElement('span');
-					points.classList.add('points');
-					points.innerText = letterValues[letter];
-					tile.appendChild(points);
-		
-					return tile;
-				}
-		
-				function replenishRack(playerNum) {
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					const slots = rack.querySelectorAll('.rack-slot');
-		
-					slots.forEach(slot => {
-						if (!slot.firstElementChild && tileBag.length > 0) {
-							const randomIndex = Math.floor(Math.random() * tileBag.length);
-							const letter = tileBag.splice(randomIndex, 1)[0];
-							const tile = createTile(letter);
-							slot.appendChild(tile);
-						}
-					});
-				}
-		
-				function shuffleRack(playerNum) {
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					if (rack.classList.contains('hidden')) {
-						customAlert("Please show the rack before shuffling tiles.");
-						return;
-					}
-					const slots = Array.from(rack.querySelectorAll('.rack-slot'));
-					const tiles = [];
-		
-					slots.forEach(slot => {
-						if (slot.firstElementChild) {
-							tiles.push(slot.firstElementChild);
-							slot.innerHTML = '';
-						}
-					});
-		
-					for (let i = tiles.length - 1; i > 0; i--) {
-						const j = Math.floor(Math.random() * (i + 1));
-						[tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-					}
-		
-					let tileIdx = 0;
-					for (let slot of slots) {
-						if (tileIdx < tiles.length) {
-							slot.appendChild(tiles[tileIdx]);
-							tileIdx++;
-						}
-					}
-				}
-		
-				function recallTiles(playerNum) {
-					if (playerNum !== activePlayer) {
-						customAlert("You can only recall tiles during your active turn.");
-						return;
-					}
-					const freshTiles = boardEl.querySelectorAll('.tile.fresh');
-					if (freshTiles.length === 0) return;
-		
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					const slots = rack.querySelectorAll('.rack-slot');
-		
-					freshTiles.forEach(tile => {
-						resetBlankTileIfBlank(tile);
-						for (let slot of slots) {
-							if (!slot.firstElementChild) {
-								slot.appendChild(tile);
-								break;
-							}
-						}
-					});
-					calculateScore();
-				}
-		
-				function skipTurn() {
-					recallTiles(activePlayer);
-		
-					canChallenge = false;
-					challengeRollbackSnapshot = null;
-		
-					consecutiveSkips++;
-		
-					if (consecutiveSkips >= 4) {
-						triggerGameEnd();
-						return;
-					}
-		
-					activePlayer = activePlayer === 1 ? 2 : 1;
-					updateTurnInterface();
-		
-					turnStartSnapshot = captureSnapshot();
-					calculateScore();
-					updateTileBagDisplay();
-					customAlert(`Turn skipped! (${consecutiveSkips}/4 total skips). It is now Player ${activePlayer}'s turn.`);
-				}
-		
-				function hideRack(playerNum) {
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					const btn = document.getElementById(`hide-btn-${playerNum}`);
-					if (rack && btn) {
-						rack.classList.add('hidden');
-						btn.innerText = "Show";
-					}
-				}
-		
-				async function toggleRackVisibility(playerNum) {
-					if (playerNum !== activePlayer) {
-						await customAlert("You can only reveal tiles during your active turn.");
-						return;
-					}
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					const btn = document.getElementById(`hide-btn-${playerNum}`);
-					if (rack.classList.contains('hidden')) {
-						const passwordInput = await customPrompt(`Enter Player ${playerNum} Security Key:`, "", "Rack Verification");
-						if (passwordInput === playerPasswords[playerNum]) {
-							rack.classList.remove('hidden');
-							btn.innerText = "Hide";
-						} else if (passwordInput !== null) {
-							customAlert("Security Handshake Failure: Invalid Key.");
-						}
-					} else {
-						rack.classList.add('hidden');
-						btn.innerText = "Show";
-					}
-				}
-		
-				function updateTurnInterface() {
-					document.getElementById('player1-card').classList.toggle('active', activePlayer === 1);
-					document.getElementById('player2-card').classList.toggle('active', activePlayer === 2);
-					document.getElementById('row-p1').classList.toggle('active-turn', activePlayer === 1);
-					document.getElementById('row-p2').classList.toggle('active-turn', activePlayer === 2);
-		
-					// General Rule: Force hide both tile racks whenever turn changes
-					hideRack(1);
-					hideRack(2);
-		
-					turnStartTime = Date.now();
-				}
-		
-				function refreshScoreInterface() {
-					document.getElementById('score-p1').innerText = playerScores[1];
-					document.getElementById('score-p2').innerText = playerScores[2];
-				}
-		
-				function drag(ev) {
-					const tile = ev.target;
-					if (tile.classList.contains('permanent')) {
-						ev.preventDefault();
-						return;
-					}
-					const originRack = tile.closest('.rack');
-					if (originRack && originRack.id !== `rack-p${activePlayer}`) {
-						ev.preventDefault();
-						return;
-					}
-					ev.dataTransfer.setData("text/plain", tile.id);
-				}
-		
-				function allowDrop(ev) {
-					ev.preventDefault();
-				}
-		
-				function dropToBoard(ev) {
-					ev.preventDefault();
-					const data = ev.dataTransfer.getData("text/plain");
-					const tile = document.getElementById(data);
-					if (!tile) return;
-		
-					let targetCell = ev.target.closest('.cell');
-					if (!targetCell) return;
-					if (targetCell.querySelector('.tile')) return;
-		
-					targetCell.appendChild(tile);
-					calculateScore();
-		
-					if (tile.dataset.isBlank === "true") {
-						pendingBlankTile = tile;
-						openBlankModal();
-					}
-				}
-		
-				function dropToRackSlot(ev, playerNum) {
-					ev.preventDefault();
-					if (playerNum !== activePlayer) return;
-					const data = ev.dataTransfer.getData("text/plain");
-					const tile = document.getElementById(data);
-					if (!tile) return;
-		
-					resetBlankTileIfBlank(tile);
-		
-					const targetSlot = ev.target.closest('.rack-slot');
-					if (!targetSlot) return;
-		
-					if (targetSlot.querySelector('.tile')) {
-						const existingTile = targetSlot.querySelector('.tile');
-						const origin = tile.parentElement;
-		
-						if (origin && origin.classList.contains('rack-slot')) {
-							origin.appendChild(existingTile);
-							targetSlot.appendChild(tile);
-						} else {
-							const rack = document.getElementById(`rack-p${playerNum}`);
-							const slots = rack.querySelectorAll('.rack-slot');
-							let freeSlot = null;
-							for (let s of slots) {
-								if (!s.firstElementChild && s !== targetSlot) {
-									freeSlot = s;
-									break;
-								}
-							}
-							if (freeSlot) {
-								freeSlot.appendChild(existingTile);
-								targetSlot.appendChild(tile);
-							} else {
-								targetSlot.appendChild(tile);
-							}
-						}
-					} else {
-						targetSlot.appendChild(tile);
-					}
-					calculateScore();
-				}
-		
-				function dropToRackFallback(ev, playerNum) {
-					ev.preventDefault();
-					if (playerNum !== activePlayer) return;
-		
-					if (ev.target.classList.contains('rack-slot') || ev.target.closest('.rack-slot')) return;
-		
-					const data = ev.dataTransfer.getData("text/plain");
-					const tile = document.getElementById(data);
-					if (!tile) return;
-		
-					resetBlankTileIfBlank(tile);
-		
-					const rack = document.getElementById(`rack-p${playerNum}`);
-					const slots = rack.querySelectorAll('.rack-slot');
-					for (let slot of slots) {
-						if (!slot.firstElementChild) {
-							slot.appendChild(tile);
+					let freeSlot = null;
+					for (let s of slots) {
+						if (!s.firstElementChild && s !== targetSlot) {
+							freeSlot = s;
 							break;
 						}
 					}
-					calculateScore();
+					if (freeSlot) {
+						freeSlot.appendChild(existingTile);
+						targetSlot.appendChild(tile);
+					} else {
+						targetSlot.appendChild(tile);
+					}
 				}
-		
-				function captureSnapshot() {
-					return {
-						boardHTML: boardEl.innerHTML,
-						rack1HTML: document.getElementById('rack-p1').innerHTML,
-						rack2HTML: document.getElementById('rack-p2').innerHTML,
-						scores: { ...playerScores },
-						bag: [...tileBag],
-						tileCounter: tileCounter,
-						turnCounter: turnCounter,
-						activePlayer: activePlayer,
-						turnHistoryHTML: document.getElementById('turn-history-list').innerHTML
+			} else {
+				targetSlot.appendChild(tile);
+			}
+			calculateScore();
+		}
+
+		function dropToRackFallback(ev, playerNum) {
+			ev.preventDefault();
+			if (playerNum !== activePlayer) return;
+
+			if (ev.target.classList.contains('rack-slot') || ev.target.closest('.rack-slot')) return;
+
+			const data = ev.dataTransfer.getData("text/plain");
+			const tile = document.getElementById(data);
+			if (!tile) return;
+
+			resetBlankTileIfBlank(tile);
+
+			const rack = document.getElementById(`rack-p${playerNum}`);
+			const slots = rack.querySelectorAll('.rack-slot');
+			for (let slot of slots) {
+				if (!slot.firstElementChild) {
+					slot.appendChild(tile);
+					break;
+				}
+			}
+			calculateScore();
+		}
+
+		function captureSnapshot() {
+			return {
+				boardHTML: boardEl.innerHTML,
+				rack1HTML: document.getElementById('rack-p1').innerHTML,
+				rack2HTML: document.getElementById('rack-p2').innerHTML,
+				scores: { ...playerScores },
+				bag: [...tileBag],
+				tileCounter: tileCounter,
+				turnCounter: turnCounter,
+				activePlayer: activePlayer,
+				turnHistoryHTML: document.getElementById('turn-history-list').innerHTML
+			};
+		}
+
+		function restoreSnapshot(snap) {
+			boardEl.innerHTML = snap.boardHTML;
+			document.getElementById('rack-p1').innerHTML = snap.rack1HTML;
+			document.getElementById('rack-p2').innerHTML = snap.rack2HTML;
+			document.getElementById('turn-history-list').innerHTML = snap.turnHistoryHTML;
+			playerScores = { ...snap.scores };
+			tileBag = [...snap.bag];
+			tileCounter = snap.tileCounter;
+			turnCounter = snap.turnCounter || 0;
+			activePlayer = snap.activePlayer;
+
+			refreshScoreInterface();
+			updateTurnInterface();
+			calculateScore();
+			updateTileBagDisplay();
+		}
+
+		function getNewlyFormedWordObjects() {
+			const grid = Array(15).fill(null).map(() => Array(15).fill(null));
+			const cells = boardEl.getElementsByClassName('cell');
+			for (let cell of cells) {
+				const r = parseInt(cell.dataset.row);
+				const c = parseInt(cell.dataset.col);
+				const tile = cell.querySelector('.tile');
+				if (tile) {
+					grid[r][c] = {
+						letter: tile.dataset.letter,
+						points: parseInt(tile.dataset.points),
+						isBlank: tile.dataset.isBlank === "true",
+						isFresh: tile.classList.contains('fresh')
 					};
 				}
-		
-				function restoreSnapshot(snap) {
-					boardEl.innerHTML = snap.boardHTML;
-					document.getElementById('rack-p1').innerHTML = snap.rack1HTML;
-					document.getElementById('rack-p2').innerHTML = snap.rack2HTML;
-					document.getElementById('turn-history-list').innerHTML = snap.turnHistoryHTML;
-					playerScores = { ...snap.scores };
-					tileBag = [...snap.bag];
-					tileCounter = snap.tileCounter;
-					turnCounter = snap.turnCounter || 0;
-					activePlayer = snap.activePlayer;
-		
-					refreshScoreInterface();
-					updateTurnInterface();
-					calculateScore();
-					updateTileBagDisplay();
-				}
-		
-				function getNewlyFormedWordObjects() {
-					const grid = Array(15).fill(null).map(() => Array(15).fill(null));
-					const cells = boardEl.getElementsByClassName('cell');
-					for (let cell of cells) {
-						const r = parseInt(cell.dataset.row);
-						const c = parseInt(cell.dataset.col);
-						const tile = cell.querySelector('.tile');
-						if (tile) {
-							grid[r][c] = {
-								letter: tile.dataset.letter,
-								points: parseInt(tile.dataset.points),
-								isBlank: tile.dataset.isBlank === "true",
-								isFresh: tile.classList.contains('fresh')
-							};
-						}
-					}
-		
-					let wordObjects = [];
-		
-					for (let r = 0; r < 15; r++) {
-						let c = 0;
-						while (c < 15) {
-							if (grid[r][c]) {
-								let w = [];
-								while (c < 15 && grid[r][c]) {
-									w.push(grid[r][c]);
-									c++;
-								}
-								if (w.length >= 2 && w.some(t => t.isFresh)) {
-									wordObjects.push({ tiles: w });
-								}
-							} else { c++; }
-						}
-					}
-		
-					for (let c = 0; c < 15; c++) {
-						let r = 0;
-						while (r < 15) {
-							if (grid[r][c]) {
-								let w = [];
-								while (r < 15 && grid[r][c]) {
-									w.push(grid[r][c]);
-									r++;
-								}
-								if (w.length >= 2 && w.some(t => t.isFresh)) {
-									wordObjects.push({ tiles: w });
-								}
-							} else { r++; }
-						}
-					}
-					return wordObjects;
-				}
-		
-				function recordTurnHistory(wordObjs, player, score, turnNum) {
-					const list = document.getElementById('turn-history-list');
-					const now = new Date();
-					const timeStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-		
-					const card = document.createElement('div');
-					card.classList.add('history-card');
-		
-					let playerName = `Player ${player}`;
-					let avatarText = player === 1 ? 'P1' : 'P2';
-					let wordCountText = `${wordObjs.length} ${wordObjs.length === 1 ? 'Word' : 'Words'}`;
-		
-					let wordsHTML = '';
-					wordObjs.forEach(wObj => {
-						let rowHTML = '<div class="history-word-row">';
-						wObj.tiles.forEach(t => {
-							let isBlankClass = t.isBlank ? 'blank-assigned' : '';
-							rowHTML += `<div class="history-tile ${isBlankClass}">${t.letter}<span class="h-pts">${t.points}</span></div>`;
-						});
-						rowHTML += '</div>';
-						wordsHTML += rowHTML;
-					});
-		
-					card.innerHTML = `
-						<div class="history-card-top">
-							<div class="history-avatar">${avatarText}</div>
-							<div class="history-meta">
-								<div class="history-player-name">${playerName}</div>
-								<div>Turn #${turnNum}, ${timeStr} • ${wordCountText} • ${score} Points</div>
-							</div>
-						</div>
-						<div class="history-words-wrapper">
-							${wordsHTML}
-						</div>
-					`;
-		
-					list.prepend(card);
-				}
-		
-				function calculateScore() {
-					const grid = Array(15).fill(null).map(() => Array(15).fill(null));
-					const cells = boardEl.getElementsByClassName('cell');
-					let freshTileCount = 0;
-		
-					for (let cell of cells) {
-						const r = parseInt(cell.dataset.row);
-						const c = parseInt(cell.dataset.col);
-						const tile = cell.querySelector('.tile');
-						if (tile) {
-							const isFresh = tile.classList.contains('fresh');
-							if (isFresh) freshTileCount++;
-							grid[r][c] = {
-								letter: tile.dataset.letter,
-								points: parseInt(tile.dataset.points),
-								coord: `${r},${c}`,
-								isFresh: isFresh
-							};
-						}
-					}
-		
-					function getBonusFactors(coord, isFresh) {
-						let letterMultiplier = 1;
-						let wordMultiplier = 1;
-						if (isFresh) {
-							if (DLS.includes(coord)) letterMultiplier = 2;
-							else if (TLS.includes(coord)) letterMultiplier = 3;
-							else if (DWS.includes(coord) || coord === "7,7") wordMultiplier = 2;
-							else if (TWS.includes(coord)) wordMultiplier = 3;
-						}
-						return { letterMultiplier, wordMultiplier };
-					}
-		
-					function scoreLines(getTile) {
-						let score = 0;
-						for (let i = 0; i < 15; i++) {
-							let j = 0;
-							while (j < 15) {
-								let tile = getTile(i, j);
-								if (tile) {
-									let wordTiles = [];
-									while (j < 15 && (tile = getTile(i, j))) {
-										wordTiles.push(tile);
-										j++;
-									}
-									if (wordTiles.length >= 2 && wordTiles.some(t => t.isFresh)) {
-										let wordSum = 0;
-										let wordMultiplier = 1;
-										for (let t of wordTiles) {
-											const bonus = getBonusFactors(t.coord, t.isFresh);
-											wordSum += t.points * bonus.letterMultiplier;
-											wordMultiplier *= bonus.wordMultiplier;
-										}
-										score += (wordSum * wordMultiplier);
-									}
-								} else { j++; }
-							}
-						}
-						return score;
-					}
-		
-					let turnScore = scoreLines((r, c) => grid[r][c]) + scoreLines((c, r) => grid[r][c]);
-		
-					if (freshTileCount === 7) turnScore += 50;
-					currentPendingScore = turnScore;
-					pendingValueEl.innerText = currentPendingScore;
-				}
-		
-				async function validatePlacement() {
-					const freshTiles = boardEl.querySelectorAll('.tile.fresh');
-					if (freshTiles.length === 0) {
-						await customAlert("Placement Error: Place down your play before attempting submission.");
-						return false;
-					}
-		
-					// Verify unassigned blank tiles
-					for (let tile of freshTiles) {
-						if (tile.dataset.isBlank === "true" && tile.dataset.letter === ' ') {
-							await customAlert("Selection Error: Choose a letter designation for all placed blank tiles.");
-							return false;
-						}
-					}
-		
-					let coordinates = [];
-					freshTiles.forEach(tile => {
-						let cell = tile.parentElement;
-						coordinates.push({
-							row: parseInt(cell.dataset.row),
-							col: parseInt(cell.dataset.col)
-						});
-					});
-					const permanentTiles = boardEl.querySelectorAll('.tile.permanent');
-					let isFirstMove = (permanentTiles.length === 0);
-					if (isFirstMove) {
-						let hitsCenter = coordinates.some(c => c.row === 7 && c.col === 7);
-						if (!hitsCenter) {
-							await customAlert("Strategic Error: First word submission must hit center star (7,7).");
-							return false;
-						}
-					}
-		
-					let allSameRow = coordinates.every(c => c.row === coordinates[0].row);
-					let allSameCol = coordinates.every(c => c.col === coordinates[0].col);
-					if (!allSameRow && !allSameCol) {
-						await customAlert("Directional Error: Placed tiles must form a straight single vertical or horizontal timeline.");
-						return false;
-					}
-		
-					let connected = false;
-					let indices = coordinates.map(c => allSameRow ? c.col : c.row);
-					let minIdx = Math.min(...indices);
-					let maxIdx = Math.max(...indices);
-					let fixedIdx = allSameRow ? coordinates[0].row : coordinates[0].col;
-		
-					for (let idx = minIdx; idx <= maxIdx; idx++) {
-						let r = allSameRow ? fixedIdx : idx;
-						let c = allSameRow ? idx : fixedIdx;
-						let cell = boardEl.querySelector(`[data-row="${r}"][data-col="${c}"]`);
-						if (!cell.querySelector('.tile')) {
-							await customAlert("Structural Error: Gaps detected inside structural word elements.");
-							return false;
-						}
-						if (!isFirstMove) {
-							if (cell.querySelector('.tile.permanent')) connected = true;
-							let directions = [{r: r-1, c: c}, {r: r+1, c: c}, {r: r, c: c-1}, {r: r, c: c+1}];
-							for (let d of directions) {
-								if (d.r >= 0 && d.r < 15 && d.c >= 0 && d.c < 15) {
-									let adj = boardEl.querySelector(`[data-row="${d.r}"][data-col="${d.c}"]`);
-									if (adj && adj.querySelector('.tile.permanent')) connected = true;
-								}
-							}
-						}
-					}
-		
-					if (!isFirstMove && !connected) {
-						await customAlert("Structural Error: Placed tiles must latch onto or intersect previous words.");
-						return false;
-					}
-		
-					return true;
-				}
-		
-				async function submitWord() {
-					const isValid = await validatePlacement();
-					if (!isValid) return;
-		
-					turnCounter++;
-					consecutiveSkips = 0;
-		
-					let turnDuration = Math.max(1, Math.round((Date.now() - turnStartTime) / 1000));
-					let wordObjs = getNewlyFormedWordObjects();
-		
-					wordObjs.forEach(wObj => {
-						let wStr = wObj.tiles.map(t => t.letter).join('');
-						playedWordsStats.push({
-							word: wStr,
-							length: wStr.length,
-							duration: turnDuration,
-							player: activePlayer
-						});
-					});
-		
-					recordTurnHistory(wordObjs, activePlayer, currentPendingScore, turnCounter);
-		
-					challengeRollbackSnapshot = turnStartSnapshot;
-					lastPlayerWhoPlayed = activePlayer;
-					canChallenge = true;
-		
-					playerScores[activePlayer] += currentPendingScore;
-					document.getElementById(`score-p${activePlayer}`).innerText = playerScores[activePlayer];
-		
-					const freshTiles = boardEl.querySelectorAll('.tile.fresh');
-					freshTiles.forEach(tile => {
-						tile.classList.remove('fresh');
-						tile.classList.add('permanent');
-						tile.setAttribute('draggable', 'false');
-					});
-		
-					// Replenish tiles from bag
-					replenishRack(activePlayer);
-		
-					// Check if player ran out of tiles (Tile bag is empty AND player's rack has 0 tiles)
-					const currentRack = document.getElementById(`rack-p${activePlayer}`);
-					const remainingTilesInRack = currentRack.querySelectorAll('.tile').length;
-		
-					if (tileBag.length === 0 && remainingTilesInRack === 0) {
-						triggerGameEnd();
-						return;
-					}
-		
-					activePlayer = activePlayer === 1 ? 2 : 1;
-					updateTurnInterface();
-		
-					turnStartSnapshot = captureSnapshot();
-					calculateScore();
-					updateTileBagDisplay();
-				}
-		
-				function updatePlayerEndStats(playerNum) {
-					let pStats = playedWordsStats.filter(p => p.player === playerNum);
-					if (pStats.length > 0) {
-						let fastest = pStats.reduce((min, p) => p.duration < min.duration ? p : min, pStats[0]);
-						let slowest = pStats.reduce((max, p) => p.duration > max.duration ? p : max, pStats[0]);
-						let longest = pStats.reduce((max, p) => p.length > max.length ? p : max, pStats[0]);
-		
-						document.getElementById(`p${playerNum}-stat-fastest`).innerText = `"${fastest.word}" (${fastest.duration}s)`;
-						document.getElementById(`p${playerNum}-stat-slowest`).innerText = `"${slowest.word}" (${slowest.duration}s)`;
-						document.getElementById(`p${playerNum}-stat-longest`).innerText = `"${longest.word}" (${longest.length} letters)`;
-					} else {
-						document.getElementById(`p${playerNum}-stat-fastest`).innerText = 'N/A';
-						document.getElementById(`p${playerNum}-stat-slowest`).innerText = 'N/A';
-						document.getElementById(`p${playerNum}-stat-longest`).innerText = 'N/A';
-					}
-				}
-		
-				function triggerGameEnd() {
-					if (gameTimerInterval) clearInterval(gameTimerInterval);
-					isGameStarted = false;
-		
-					const winnerBanner = document.getElementById('winner-banner');
-		
-					if (playerScores[1] > playerScores[2]) {
-						winnerBanner.innerText = `🏆 Player 1 Wins! (${playerScores[1]} vs ${playerScores[2]} pts)`;
-						winnerBanner.style.color = "#ECDBAF";
-						winnerBanner.style.backgroundColor = "#E23F2B";
-					} else if (playerScores[2] > playerScores[1]) {
-						winnerBanner.innerText = `🏆 Player 2 Wins! (${playerScores[2]} vs ${playerScores[1]} pts)`;
-						winnerBanner.style.color = "#ECDBAF";
-						winnerBanner.style.backgroundColor = "#E23F2B";
-					} else {
-						winnerBanner.innerText = `🤝 It's a Tie! (${playerScores[1]} pts each)`;
-						winnerBanner.style.color = "#ECDBAF";
-						winnerBanner.style.backgroundColor = "#E23F2B";
-					}
-		
-					// Render statistics for BOTH players
-					updatePlayerEndStats(1);
-					updatePlayerEndStats(2);
-		
-					document.getElementById('end-overlay').style.display = 'flex';
-				}
-		
-				async function triggerChallenge() {
-					if (!canChallenge || !challengeRollbackSnapshot) {
-						await customAlert("No recent play sequence matches requirements for a challenge.");
-						return;
-					}
-		
-					let challenger = activePlayer;
-					let defender = lastPlayerWhoPlayed;
-					const auth = await customPrompt(`Player ${challenger}, enter your secret key to authorize this challenge:`, "", "Authorize Challenge");
-					if (auth !== playerPasswords[challenger]) {
-						await customAlert("Security Error: Password verification failed. Challenge aborted.");
-						return;
-					}
-		
-					let challengeSucceeded = await customConfirm(`Did Player ${defender} submit an INVALID/FAKE word?\n\nSelect 'Yes' if the word is FAKE (Challenge Succeeds).\nSelect 'No' if the word is VALID (Challenge Fails).`, "Challenge Word Result");
-					if (challengeSucceeded) {
-						restoreSnapshot(challengeRollbackSnapshot);
-						playerScores[defender] -= 50;
-						playerScores[challenger] += 50;
-		
-						refreshScoreInterface();
-						await customAlert(`Challenge Successful! Player ${defender}'s tiles have been cleanly revoked back into their rack.\n\n❌ Player ${defender} (Loser) is penalized -50 points.\n🏆 Player ${challenger} (Winner) is awarded +50 points.`);
-					} else {
-						playerScores[challenger] -= 50;
-		
-						refreshScoreInterface();
-						await customAlert(`Challenge Failed! The word layout stands intact.\n\n❌ Player ${challenger} (Loser) is penalized -50 points.`);
-					}
-		
-					canChallenge = false;
-					challengeRollbackSnapshot = null;
-					turnStartSnapshot = captureSnapshot();
-					calculateScore();
-					updateTileBagDisplay();
-				}
-		
-				async function resetBoard() {
-					document.getElementById('end-overlay').style.display = 'none';
-		
-					let p1Pass = await customPrompt("Configure Player 1 Key:", playerPasswords[1], "Security Setup") || playerPasswords[1];
-					let p2Pass = await customPrompt("Configure Player 2 Key:", playerPasswords[2], "Security Setup") || playerPasswords[2];
-					playerPasswords[1] = p1Pass;
-					playerPasswords[2] = p2Pass;
-		
-					document.getElementById('turn-history-list').innerHTML = '';
-					playerTimes = { ...initialTimes };
-					isGameStarted = true;
-					initGame();
-					startTimerEngine();
-				}
-		
-				function initGame() {
-					playerScores = { 1: 0, 2: 0 };
-					activePlayer = 1;
-					turnCounter = 0;
-					consecutiveSkips = 0;
-					playedWordsStats = [];
-					canChallenge = false;
-					challengeRollbackSnapshot = null;
-		
-					refreshScoreInterface();
-		
-					createBoard();
-					buildRackSlots();
-					initializeBag();
-					replenishRack(1);
-					replenishRack(2);
-		
-					updateTurnInterface();
-		
-					turnStartSnapshot = captureSnapshot();
-					calculateScore();
-					updateTileBagDisplay();
-				}
-							</script>
-				</body>
+			}
 
-				</html>
+			let wordObjects = [];
+
+			for (let r = 0; r < 15; r++) {
+				let c = 0;
+				while (c < 15) {
+					if (grid[r][c]) {
+						let w = [];
+						while (c < 15 && grid[r][c]) {
+							w.push(grid[r][c]);
+							c++;
+						}
+						if (w.length >= 2 && w.some(t => t.isFresh)) {
+							wordObjects.push({ tiles: w });
+						}
+					} else { c++; }
+				}
+			}
+
+			for (let c = 0; c < 15; c++) {
+				let r = 0;
+				while (r < 15) {
+					if (grid[r][c]) {
+						let w = [];
+						while (r < 15 && grid[r][c]) {
+							w.push(grid[r][c]);
+							r++;
+						}
+						if (w.length >= 2 && w.some(t => t.isFresh)) {
+							wordObjects.push({ tiles: w });
+						}
+					} else { r++; }
+				}
+			}
+			return wordObjects;
+		}
+
+		function recordTurnHistory(wordObjs, player, score, turnNum) {
+			const list = document.getElementById('turn-history-list');
+			const now = new Date();
+			const timeStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+			const card = document.createElement('div');
+			card.classList.add('history-card');
+
+			let playerName = `Player ${player}`;
+			let avatarText = player === 1 ? 'P1' : 'P2';
+			let wordCountText = `${wordObjs.length} ${wordObjs.length === 1 ? 'Word' : 'Words'}`;
+
+			let wordsHTML = '';
+			wordObjs.forEach(wObj => {
+				let rowHTML = '<div class="history-word-row">';
+				wObj.tiles.forEach(t => {
+					let isBlankClass = t.isBlank ? 'blank-assigned' : '';
+					rowHTML += `<div class="history-tile ${isBlankClass}">${t.letter}<span class="h-pts">${t.points}</span></div>`;
+				});
+				rowHTML += '</div>';
+				wordsHTML += rowHTML;
+			});
+
+			card.innerHTML = `
+				<div class="history-card-top">
+					<div class="history-avatar">${avatarText}</div>
+					<div class="history-meta">
+						<div class="history-player-name">${playerName}</div>
+						<div>Turn #${turnNum}, ${timeStr} • ${wordCountText} • ${score} Points</div>
+					</div>
+				</div>
+				<div class="history-words-wrapper">
+					${wordsHTML}
+				</div>
+			`;
+
+			list.prepend(card);
+		}
+
+		function calculateScore() {
+			const grid = Array(15).fill(null).map(() => Array(15).fill(null));
+			const cells = boardEl.getElementsByClassName('cell');
+			let freshTileCount = 0;
+
+			for (let cell of cells) {
+				const r = parseInt(cell.dataset.row);
+				const c = parseInt(cell.dataset.col);
+				const tile = cell.querySelector('.tile');
+				if (tile) {
+					const isFresh = tile.classList.contains('fresh');
+					if (isFresh) freshTileCount++;
+					grid[r][c] = {
+						letter: tile.dataset.letter,
+						points: parseInt(tile.dataset.points),
+						coord: `${r},${c}`,
+						isFresh: isFresh
+					};
+				}
+			}
+
+			function getBonusFactors(coord, isFresh) {
+				let letterMultiplier = 1;
+				let wordMultiplier = 1;
+				if (isFresh) {
+					if (DLS.includes(coord)) letterMultiplier = 2;
+					else if (TLS.includes(coord)) letterMultiplier = 3;
+					else if (DWS.includes(coord) || coord === "7,7") wordMultiplier = 2;
+					else if (TWS.includes(coord)) wordMultiplier = 3;
+				}
+				return { letterMultiplier, wordMultiplier };
+			}
+
+			function scoreLines(getTile) {
+				let score = 0;
+				for (let i = 0; i < 15; i++) {
+					let j = 0;
+					while (j < 15) {
+						let tile = getTile(i, j);
+						if (tile) {
+							let wordTiles = [];
+							while (j < 15 && (tile = getTile(i, j))) {
+								wordTiles.push(tile);
+								j++;
+							}
+							if (wordTiles.length >= 2 && wordTiles.some(t => t.isFresh)) {
+								let wordSum = 0;
+								let wordMultiplier = 1;
+								for (let t of wordTiles) {
+									const bonus = getBonusFactors(t.coord, t.isFresh);
+									wordSum += t.points * bonus.letterMultiplier;
+									wordMultiplier *= bonus.wordMultiplier;
+								}
+								score += (wordSum * wordMultiplier);
+							}
+						} else { j++; }
+					}
+				}
+				return score;
+			}
+
+			let turnScore = scoreLines((r, c) => grid[r][c]) + scoreLines((c, r) => grid[r][c]);
+
+			if (freshTileCount === 7) turnScore += 50;
+			currentPendingScore = turnScore;
+			pendingValueEl.innerText = currentPendingScore;
+		}
+
+		async function validatePlacement() {
+			const freshTiles = boardEl.querySelectorAll('.tile.fresh');
+			if (freshTiles.length === 0) {
+				await customAlert("Placement Error: Place down your play before attempting submission.");
+				return false;
+			}
+
+			// Verify unassigned blank tiles
+			for (let tile of freshTiles) {
+				if (tile.dataset.isBlank === "true" && tile.dataset.letter === ' ') {
+					await customAlert("Selection Error: Choose a letter designation for all placed blank tiles.");
+					return false;
+				}
+			}
+
+			let coordinates = [];
+			freshTiles.forEach(tile => {
+				let cell = tile.parentElement;
+				coordinates.push({
+					row: parseInt(cell.dataset.row),
+					col: parseInt(cell.dataset.col)
+				});
+			});
+			const permanentTiles = boardEl.querySelectorAll('.tile.permanent');
+			let isFirstMove = (permanentTiles.length === 0);
+			if (isFirstMove) {
+				let hitsCenter = coordinates.some(c => c.row === 7 && c.col === 7);
+				if (!hitsCenter) {
+					await customAlert("Strategic Error: First word submission must hit center star (7,7).");
+					return false;
+				}
+			}
+
+			let allSameRow = coordinates.every(c => c.row === coordinates[0].row);
+			let allSameCol = coordinates.every(c => c.col === coordinates[0].col);
+			if (!allSameRow && !allSameCol) {
+				await customAlert("Directional Error: Placed tiles must form a straight single vertical or horizontal timeline.");
+				return false;
+			}
+
+			let connected = false;
+			let indices = coordinates.map(c => allSameRow ? c.col : c.row);
+			let minIdx = Math.min(...indices);
+			let maxIdx = Math.max(...indices);
+			let fixedIdx = allSameRow ? coordinates[0].row : coordinates[0].col;
+
+			for (let idx = minIdx; idx <= maxIdx; idx++) {
+				let r = allSameRow ? fixedIdx : idx;
+				let c = allSameRow ? idx : fixedIdx;
+				let cell = boardEl.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+				if (!cell.querySelector('.tile')) {
+					await customAlert("Structural Error: Gaps detected inside structural word elements.");
+					return false;
+				}
+				if (!isFirstMove) {
+					if (cell.querySelector('.tile.permanent')) connected = true;
+					let directions = [{r: r-1, c: c}, {r: r+1, c: c}, {r: r, c: c-1}, {r: r, c: c+1}];
+					for (let d of directions) {
+						if (d.r >= 0 && d.r < 15 && d.c >= 0 && d.c < 15) {
+							let adj = boardEl.querySelector(`[data-row="${d.r}"][data-col="${d.c}"]`);
+							if (adj && adj.querySelector('.tile.permanent')) connected = true;
+						}
+					}
+				}
+			}
+
+			if (!isFirstMove && !connected) {
+				await customAlert("Structural Error: Placed tiles must latch onto or intersect previous words.");
+				return false;
+			}
+
+			return true;
+		}
+
+		async function submitWord() {
+			const isValid = await validatePlacement();
+			if (!isValid) return;
+
+			turnCounter++;
+			consecutiveSkips = 0;
+
+			let turnDuration = Math.max(1, Math.round((Date.now() - turnStartTime) / 1000));
+			let wordObjs = getNewlyFormedWordObjects();
+
+			wordObjs.forEach(wObj => {
+				let wStr = wObj.tiles.map(t => t.letter).join('');
+				playedWordsStats.push({
+					word: wStr,
+					length: wStr.length,
+					duration: turnDuration,
+					player: activePlayer
+				});
+			});
+
+			recordTurnHistory(wordObjs, activePlayer, currentPendingScore, turnCounter);
+
+			challengeRollbackSnapshot = turnStartSnapshot;
+			lastPlayerWhoPlayed = activePlayer;
+			canChallenge = true;
+
+			playerScores[activePlayer] += currentPendingScore;
+			document.getElementById(`score-p${activePlayer}`).innerText = playerScores[activePlayer];
+
+			const freshTiles = boardEl.querySelectorAll('.tile.fresh');
+			freshTiles.forEach(tile => {
+				tile.classList.remove('fresh');
+				tile.classList.add('permanent');
+				tile.setAttribute('draggable', 'false');
+			});
+
+			// Replenish tiles from bag
+			replenishRack(activePlayer);
+
+			// Check if player ran out of tiles (Tile bag is empty AND player's rack has 0 tiles)
+			const currentRack = document.getElementById(`rack-p${activePlayer}`);
+			const remainingTilesInRack = currentRack.querySelectorAll('.tile').length;
+
+			if (tileBag.length === 0 && remainingTilesInRack === 0) {
+				triggerGameEnd();
+				return;
+			}
+
+			activePlayer = activePlayer === 1 ? 2 : 1;
+			updateTurnInterface();
+
+			turnStartSnapshot = captureSnapshot();
+			calculateScore();
+			updateTileBagDisplay();
+		}
+
+		function updatePlayerEndStats(playerNum) {
+			let pStats = playedWordsStats.filter(p => p.player === playerNum);
+			if (pStats.length > 0) {
+				let fastest = pStats.reduce((min, p) => p.duration < min.duration ? p : min, pStats[0]);
+				let slowest = pStats.reduce((max, p) => p.duration > max.duration ? p : max, pStats[0]);
+				let longest = pStats.reduce((max, p) => p.length > max.length ? p : max, pStats[0]);
+
+				document.getElementById(`p${playerNum}-stat-fastest`).innerText = `"${fastest.word}" (${fastest.duration}s)`;
+				document.getElementById(`p${playerNum}-stat-slowest`).innerText = `"${slowest.word}" (${slowest.duration}s)`;
+				document.getElementById(`p${playerNum}-stat-longest`).innerText = `"${longest.word}" (${longest.length} letters)`;
+			} else {
+				document.getElementById(`p${playerNum}-stat-fastest`).innerText = 'N/A';
+				document.getElementById(`p${playerNum}-stat-slowest`).innerText = 'N/A';
+				document.getElementById(`p${playerNum}-stat-longest`).innerText = 'N/A';
+			}
+		}
+
+		function triggerGameEnd() {
+			if (gameTimerInterval) clearInterval(gameTimerInterval);
+			isGameStarted = false;
+
+			const winnerBanner = document.getElementById('winner-banner');
+
+			if (playerScores[1] > playerScores[2]) {
+				winnerBanner.innerText = `🏆 Player 1 Wins! (${playerScores[1]} vs ${playerScores[2]} pts)`;
+				winnerBanner.style.color = "#ECDBAF";
+				winnerBanner.style.backgroundColor = "#E23F2B";
+			} else if (playerScores[2] > playerScores[1]) {
+				winnerBanner.innerText = `🏆 Player 2 Wins! (${playerScores[2]} vs ${playerScores[1]} pts)`;
+				winnerBanner.style.color = "#ECDBAF";
+				winnerBanner.style.backgroundColor = "#E23F2B";
+			} else {
+				winnerBanner.innerText = `🤝 It's a Tie! (${playerScores[1]} pts each)`;
+				winnerBanner.style.color = "#ECDBAF";
+				winnerBanner.style.backgroundColor = "#E23F2B";
+			}
+
+			// Render statistics for BOTH players
+			updatePlayerEndStats(1);
+			updatePlayerEndStats(2);
+
+			document.getElementById('end-overlay').style.display = 'flex';
+		}
+
+		async function triggerChallenge() {
+			if (!canChallenge || !challengeRollbackSnapshot) {
+				await customAlert("No recent play sequence matches requirements for a challenge.");
+				return;
+			}
+
+			let challenger = activePlayer;
+			let defender = lastPlayerWhoPlayed;
+			const auth = await customPrompt(`Player ${challenger}, enter your secret key to authorize this challenge:`, "", "Authorize Challenge");
+			if (auth !== playerPasswords[challenger]) {
+				await customAlert("Security Error: Password verification failed. Challenge aborted.");
+				return;
+			}
+
+			let challengeSucceeded = await customConfirm(`Did Player ${defender} submit an INVALID/FAKE word?\n\nSelect 'Yes' if the word is FAKE (Challenge Succeeds).\nSelect 'No' if the word is VALID (Challenge Fails).`, "Challenge Word Result");
+			if (challengeSucceeded) {
+				restoreSnapshot(challengeRollbackSnapshot);
+				playerScores[defender] -= 50;
+				playerScores[challenger] += 50;
+
+				refreshScoreInterface();
+				await customAlert(`Challenge Successful! Player ${defender}'s tiles have been cleanly revoked back into their rack.\n\n❌ Player ${defender} (Loser) is penalized -50 points.\n🏆 Player ${challenger} (Winner) is awarded +50 points.`);
+			} else {
+				playerScores[challenger] -= 50;
+
+				refreshScoreInterface();
+				await customAlert(`Challenge Failed! The word layout stands intact.\n\n❌ Player ${challenger} (Loser) is penalized -50 points.`);
+			}
+
+			canChallenge = false;
+			challengeRollbackSnapshot = null;
+			turnStartSnapshot = captureSnapshot();
+			calculateScore();
+			updateTileBagDisplay();
+		}
+
+		async function resetBoard() {
+			document.getElementById('end-overlay').style.display = 'none';
+
+			let p1Pass = await customPrompt("Configure Player 1 Key:", playerPasswords[1], "Security Setup") || playerPasswords[1];
+			let p2Pass = await customPrompt("Configure Player 2 Key:", playerPasswords[2], "Security Setup") || playerPasswords[2];
+			playerPasswords[1] = p1Pass;
+			playerPasswords[2] = p2Pass;
+
+			document.getElementById('turn-history-list').innerHTML = '';
+			playerTimes = { ...initialTimes };
+			isGameStarted = true;
+			initGame();
+			startTimerEngine();
+		}
+
+		function initGame() {
+			playerScores = { 1: 0, 2: 0 };
+			activePlayer = 1;
+			turnCounter = 0;
+			consecutiveSkips = 0;
+			playedWordsStats = [];
+			canChallenge = false;
+			challengeRollbackSnapshot = null;
+
+			refreshScoreInterface();
+
+			createBoard();
+			buildRackSlots();
+			initializeBag();
+			replenishRack(1);
+			replenishRack(2);
+
+			updateTurnInterface();
+
+			turnStartSnapshot = captureSnapshot();
+			calculateScore();
+			updateTileBagDisplay();
+		}
+
+		// --- SAVE & LOAD SYSTEM ---
+
+function exportGameToCSV() {
+    if (!isGameStarted) {
+        customAlert("You must start a game before saving.");
+        return;
+    }
+
+    // Capture the entire active game state
+    const state = {
+        boardHTML: encodeURIComponent(boardEl.innerHTML),
+        rack1HTML: encodeURIComponent(document.getElementById('rack-p1').innerHTML),
+        rack2HTML: encodeURIComponent(document.getElementById('rack-p2').innerHTML),
+        turnHistoryHTML: encodeURIComponent(document.getElementById('turn-history-list').innerHTML),
+        scores: JSON.stringify(playerScores),
+        passwords: JSON.stringify(playerPasswords),
+        initialTimes: JSON.stringify(initialTimes),
+        playerTimes: JSON.stringify(playerTimes),
+        bag: JSON.stringify(tileBag),
+        stats: JSON.stringify(playedWordsStats),
+        tileCounter: tileCounter,
+        turnCounter: turnCounter,
+        activePlayer: activePlayer,
+        consecutiveSkips: consecutiveSkips
+    };
+
+    // Format as a 2-column CSV (Property, Value)
+    let csvContent = "Property,Value\n";
+    for (let key in state) {
+        let val = String(state[key]).replace(/"/g, '""'); // Escape double quotes for CSV standards
+        csvContent += `"${key}","${val}"\n`;
+    }
+
+    // Export to Local Storage (via Download Blob)
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Scrabble_Save_Turn${turnCounter}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function importGameFromCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const state = {};
+        
+        // Parse the CSV rows using regex to extract Key/Value pairs
+        const rowRegex = /"([^"]+)","(.*)"/g;
+        let match;
+        while ((match = rowRegex.exec(text)) !== null) {
+            let key = match[1];
+            let val = match[2].replace(/""/g, '"'); // Unescape double quotes
+            state[key] = val;
+        }
+
+        if (Object.keys(state).length === 0) {
+            customAlert("Invalid or corrupted save file.");
+            return;
+        }
+
+        // 1. Clear Start Screens if loaded from the main menu
+        document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('time-overlay').style.display = 'none';
+
+        // 2. Restore DOM Elements (Decoded from URI components)
+        boardEl.innerHTML = decodeURIComponent(state.boardHTML);
+        document.getElementById('rack-p1').innerHTML = decodeURIComponent(state.rack1HTML);
+        document.getElementById('rack-p2').innerHTML = decodeURIComponent(state.rack2HTML);
+        document.getElementById('turn-history-list').innerHTML = decodeURIComponent(state.turnHistoryHTML);
+
+        // 3. Restore JS Variables
+        playerScores = JSON.parse(state.scores);
+        playerPasswords = JSON.parse(state.passwords);
+        initialTimes = JSON.parse(state.initialTimes);
+        playerTimes = JSON.parse(state.playerTimes);
+        tileBag = JSON.parse(state.bag);
+        playedWordsStats = JSON.parse(state.stats);
+
+        tileCounter = parseInt(state.tileCounter);
+        turnCounter = parseInt(state.turnCounter);
+        activePlayer = parseInt(state.activePlayer);
+        consecutiveSkips = parseInt(state.consecutiveSkips);
+
+        // 4. Reset Turn States
+        canChallenge = false;
+        challengeRollbackSnapshot = null;
+        isSwapOpen = false;
+        swappingPlayer = null;
+        pendingBlankTile = null;
+
+        // 5. Update UI & Engines
+        refreshScoreInterface();
+        updateTurnInterface();
+        calculateScore();
+        updateTileBagDisplay();
+        updateTimerDisplay();
+
+        isGameStarted = true;
+        isPaused = false;
+        turnStartSnapshot = captureSnapshot();
+        
+        // Restart the timer engine
+        startTimerEngine(); 
+        
+        // Reset the file input so the same file can be loaded again if needed
+        event.target.value = ''; 
+        
+        customAlert("Game state successfully restored!");
+    };
+    
+    reader.readAsText(file);
+}
+
+				
+			</script>
+</body>
+
+</html>
 			</template>
 
 			<template id="bingoTemplate">
